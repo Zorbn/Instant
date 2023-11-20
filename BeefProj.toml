@@ -1,0 +1,6 @@
+FileVersion = 1
+Dependencies = {corlib = "*", SDL2 = "*"}
+
+[Project]
+Name = "Instant"
+StartupObject = "Instant.Program"
