@@ -61,9 +61,9 @@ class Immediate
 
 	public this(int vertexCapacity = 1024, int indexCapacity = 1024)
 	{
-		_vertexComponents = new float[vertexCapacity * ComponentsPerVertex];
+		_vertexComponents = new .[vertexCapacity * ComponentsPerVertex];
 		_vertexCapacity = vertexCapacity;
-		_indices = new uint32[indexCapacity];
+		_indices = new .[indexCapacity];
 
 		let vertexShader = GLHelper.CreateShader(VertexCode, .GL_VERTEX_SHADER);
 		let fragmentShader = GLHelper.CreateShader(FragmentCode, .GL_FRAGMENT_SHADER);
@@ -93,9 +93,7 @@ class Immediate
 		GL.glBufferData(.GL_ARRAY_BUFFER, (.)(_vertexCapacity * ComponentsPerVertex * sizeof(float)), null, .GL_STATIC_DRAW);
 	}
 
-	// TODO: Add a default blank texture (just a single white pixel loaded from memory), it would be useful for drawing shapes and things.
-	// TODO: Maybe this should use more of a batch analogy like .Draw() & .Clear() since you may want to keep drawing the same batch. Flush could stay as a wrapper?
-	public void Flush(Canvas canvas, Texture texture)
+	public void Draw(Canvas canvas, Texture texture)
 	{
 		if (_indexCount == 0) return;
 
@@ -112,9 +110,19 @@ class Immediate
 		GL.glBindTexture(.GL_TEXTURE_2D, texture.Texture);
 		GL.glBindVertexArray(_vao);
 		GL.glDrawElements(.GL_TRIANGLES, _indexCount, .GL_UNSIGNED_INT, &_indices[0]);
+	}
 
+	public void Clear()
+	{
 		_vertexCount = 0;
 		_indexCount = 0;
+	}
+
+	[Inline]
+	public void Flush(Canvas canvas, Texture texture)
+	{
+		Draw(canvas, texture);
+		Clear();
 	}
 
 	public void Vertex(Vector2 position, Vector2 uv, Color color)
@@ -125,12 +133,26 @@ class Immediate
 		RawVertex(position.X, position.Y, uv.X, uv.Y, color.R, color.G, color.B, color.A);
 	}
 
-	public void Triangle()
+	public void Quad(Rectangle destination, Rectangle source, Color color)
 	{
-	}
+		EnsureCapacity(_vertexCount + 4, _indexCount + 6);
 
-	public void Quad()
-	{
+		RawIndex(_vertexCount);
+		RawIndex(_vertexCount + 1);
+		RawIndex(_vertexCount + 2);
+
+		RawIndex(_vertexCount);
+		RawIndex(_vertexCount + 2);
+		RawIndex(_vertexCount + 3);
+
+		RawVertex(destination.Position.X, destination.Position.Y,
+			source.Position.X, source.Position.Y, color.R, color.G, color.B, color.A);
+		RawVertex(destination.Position.X + destination.Size.X, destination.Position.Y,
+			source.Position.X + source.Size.X, source.Position.Y, color.R, color.G, color.B, color.A);
+		RawVertex(destination.Position.X + destination.Size.X, destination.Position.Y + destination.Size.Y,
+			source.Position.X + source.Size.X, source.Position.Y + source.Size.Y, color.R, color.G, color.B, color.A);
+		RawVertex(destination.Position.X, destination.Position.Y + destination.Size.Y,
+			source.Position.X, source.Position.Y + source.Size.Y, color.R, color.G, color.B, color.A);
 	}
 
 	// Add a vertex that isn't paired with an index, and without ensuring capacity.
@@ -165,7 +187,7 @@ class Immediate
 		if (newVertexCapacity != _vertexCapacity)
 		{
 			delete _vertexComponents;
-			_vertexComponents = new float[newVertexCapacity * ComponentsPerVertex];
+			_vertexComponents = new .[newVertexCapacity * ComponentsPerVertex];
 			_vertexCapacity = newVertexCapacity;
 			GL.glBufferData(.GL_ARRAY_BUFFER, (.)(_vertexCapacity * ComponentsPerVertex * sizeof(float)), null, .GL_STATIC_DRAW);
 		}
@@ -175,7 +197,7 @@ class Immediate
 		if (newIndexCapacity != _indices.Count)
 		{
 			delete _indices;
-			_indices = new uint32[newIndexCapacity];
+			_indices = new .[newIndexCapacity];
 		}
 	}
 }

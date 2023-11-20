@@ -33,7 +33,7 @@ class Program
 		var wasResized = true;
 		var screenCanvas = new Canvas(window);
 		var smallCanvas = scope Canvas(32, 32);
-		var blankTexture = scope Texture(1, 1, .RGB, .Pixelated, scope uint8[](255, 255, 255));
+		var blankTexture = scope Texture(1, 1, .RGB, .Pixelated, scope .(255, 255, 255));
 
 		main:while (true)
 		{
@@ -65,18 +65,16 @@ class Program
 				}
 			}
 
-			smallCanvas.Clear(Color(38.0f / 255.0f, 129.0f / 255.0f, 217.0f / 255.0f, 1.0f));
-			screenCanvas.Clear(Color.Green);
+			smallCanvas.Clear(.(38.0f / 255.0f, 129.0f / 255.0f, 217.0f / 255.0f, 1.0f));
+			screenCanvas.Clear(.Green);
 
-			im.Vertex(Vector2(0.0f, 0.0f), Vector2(0.0f, 0.0f), Color.Red);
-			im.Vertex(Vector2(100.0f, 0.0f), Vector2(0.0f, 0.0f), Color.Green);
-			im.Vertex(Vector2(100.0f, 100.0f), Vector2(0.0f, 0.0f), Color.Blue);
+			im.Vertex(.(0.0f, 0.0f), .(0.0f, 0.0f), .Red);
+			im.Vertex(.(32.0f, 0.0f), .(0.0f, 0.0f), .Green);
+			im.Vertex(.(32.0f, 32.0f), .(0.0f, 0.0f), .Blue);
 
 			im.Flush(smallCanvas, blankTexture);
 
-			im.Vertex(Vector2(0.0f, 0.0f), Vector2(0.0f, 0.0f), Color.White);
-			im.Vertex(Vector2(640.0f, 0.0f), Vector2(1.0f, 0.0f), Color.White);
-			im.Vertex(Vector2(640.0f, 480.0f), Vector2(1.0f, 1.0f), Color.White);
+			im.Quad(.(.Zero, .(screenCanvas.Width, screenCanvas.Height)), .One, .White);
 
 			im.Flush(screenCanvas, smallCanvas.Texture);
 

@@ -1,7 +1,7 @@
 FileVersion = 1
 LastConfig = "Debug"
 LastPlatform = "Win64"
-RecentFilesList = ["src\\Program.bf", "src\\OpenGL.bf"]
+RecentFilesList = ["src\\Program.bf", "src\\Texture.bf", "src\\Canvas.bf", "src\\Matrix.bf", "src\\Immediate.bf", "src\\Color.bf", "Disassembly", "src\\GLHelper.bf", "src\\Vector2.bf"]
 
 [MainWindow]
 X = 364
@@ -50,12 +50,75 @@ DefaultDocumentsTabbedView = true
 Type = "TabbedView"
 
 [[MainDockingFrame.DockedWidgets.DockedWidgets.DockedWidgets.Tabs]]
-TabLabel = "OpenGL.bf"
+TabLabel = "Disassembly"
+TabWidth = 112.0
+TabIsPinned = false
+Type = "DisassemblyPanel"
+
+[[MainDockingFrame.DockedWidgets.DockedWidgets.DockedWidgets.Tabs]]
+TabLabel = "Texture.bf"
+TabWidth = 97.0
+TabIsPinned = false
+Type = "SourceViewPanel"
+FilePath = "src\\Texture.bf"
+CursorPos = 238
+VertPos = 220.0
+ProjectName = "Instant"
+
+[[MainDockingFrame.DockedWidgets.DockedWidgets.DockedWidgets.Tabs]]
+TabLabel = "Matrix.bf"
 TabWidth = 92.0
 TabIsPinned = false
 Type = "SourceViewPanel"
-FilePath = "src\\OpenGL.bf"
-CursorPos = 203
+FilePath = "src\\Matrix.bf"
+CursorPos = 180
+ProjectName = "Instant"
+
+[[MainDockingFrame.DockedWidgets.DockedWidgets.DockedWidgets.Tabs]]
+TabLabel = "Canvas.bf"
+TabWidth = 96.0
+TabIsPinned = false
+Type = "SourceViewPanel"
+FilePath = "src\\Canvas.bf"
+CursorPos = 810
+VertPos = 299.0
+ProjectName = "Instant"
+
+[[MainDockingFrame.DockedWidgets.DockedWidgets.DockedWidgets.Tabs]]
+TabLabel = "GLHelper.bf"
+TabWidth = 108.0
+TabIsPinned = false
+Type = "SourceViewPanel"
+FilePath = "src\\GLHelper.bf"
+CursorPos = 571
+ProjectName = "Instant"
+
+[[MainDockingFrame.DockedWidgets.DockedWidgets.DockedWidgets.Tabs]]
+TabLabel = "Color.bf"
+TabWidth = 86.0
+TabIsPinned = false
+Type = "SourceViewPanel"
+FilePath = "src\\Color.bf"
+CursorPos = 228
+ProjectName = "Instant"
+
+[[MainDockingFrame.DockedWidgets.DockedWidgets.DockedWidgets.Tabs]]
+TabLabel = "Vector2.bf"
+TabWidth = 100.0
+TabIsPinned = false
+Type = "SourceViewPanel"
+FilePath = "src\\Vector2.bf"
+CursorPos = 67
+ProjectName = "Instant"
+
+[[MainDockingFrame.DockedWidgets.DockedWidgets.DockedWidgets.Tabs]]
+TabLabel = "Immediate.bf"
+TabWidth = 116.0
+TabIsPinned = false
+Type = "SourceViewPanel"
+FilePath = "src\\Immediate.bf"
+CursorPos = 3239
+VertPos = 240.0
 ProjectName = "Instant"
 
 [[MainDockingFrame.DockedWidgets.DockedWidgets.DockedWidgets.Tabs]]
@@ -65,8 +128,8 @@ TabWidth = 96.0
 TabIsPinned = false
 Type = "SourceViewPanel"
 FilePath = "src\\Program.bf"
-CursorPos = 585
-VertPos = 499.0
+CursorPos = 1879
+VertPos = 945.0
 ProjectName = "Instant"
 
 [[MainDockingFrame.DockedWidgets.DockedWidgets]]
