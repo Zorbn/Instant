@@ -155,6 +155,34 @@ class Immediate
 			source.Position.X, source.Position.Y + source.Size.Y, color.R, color.G, color.B, color.A);
 	}
 
+	public void Circle(Vector2 position, float radius, Color color, int stepCount = 16)
+	{
+		let triangleCount = stepCount - 2;
+
+		EnsureCapacity(_vertexCount + stepCount, _indexCount + triangleCount * 3);
+
+		let angleStep = Math.PI_f * 2.0f / stepCount;
+		let baseIndex = _vertexCount;
+
+		for (var angle = 0.0f; angle < Math.PI_f * 2.0f; angle += angleStep)
+		{
+			let cos = Math.Cos(angle);
+			let sin = Math.Sin(angle);
+			let x = position.X + cos * radius;
+			let y = position.Y + sin * radius;
+			let u = (cos + 1) * 0.5f;
+			let v = (sin + 1) * 0.5f;
+			RawVertex(x, y, u, v, color.R, color.G, color.B, color.A);
+		}
+
+		for (uint32 step = 1; step < stepCount - 1; step++)
+		{
+			RawIndex(baseIndex);
+			RawIndex(baseIndex + step + 1);
+			RawIndex(baseIndex + step);
+		}
+	}
+
 	// Add a vertex that isn't paired with an index, and without ensuring capacity.
 	[Inline]
 	void RawVertex(float x, float y, float u, float v, float r, float g, float b, float a)

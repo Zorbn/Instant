@@ -32,8 +32,10 @@ class Program
 
 		var wasResized = true;
 		var screenCanvas = new Canvas(window);
-		var smallCanvas = scope Canvas(32, 32);
-		var blankTexture = scope Texture(1, 1, .RGB, .Pixelated, scope .(255, 255, 255));
+		var smallCanvas = scope Canvas(256, 256);
+		var blankTexture = scope Texture(1, 1, .Pixelated, scope .(255, 255, 255, 255));
+		var checkerTexture = scope Texture(2, 2, .Pixelated,
+			scope .(255, 255, 255, 255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 255, 255));
 
 		main:while (true)
 		{
@@ -69,10 +71,12 @@ class Program
 			screenCanvas.Clear(.Green);
 
 			im.Vertex(.(0.0f, 0.0f), .(0.0f, 0.0f), .Red);
-			im.Vertex(.(32.0f, 0.0f), .(0.0f, 0.0f), .Green);
-			im.Vertex(.(32.0f, 32.0f), .(0.0f, 0.0f), .Blue);
+			im.Vertex(.(32.0f, 0.0f), .(1.0f, 0.0f), .Green);
+			im.Vertex(.(32.0f, 32.0f), .(1.0f, 1.0f), .Blue);
 
-			im.Flush(smallCanvas, blankTexture);
+			im.Circle(.(50.0f, 50.0f), 50.0f, .Blue);
+
+			im.Flush(smallCanvas, checkerTexture);
 
 			im.Quad(.(.Zero, .(screenCanvas.Width, screenCanvas.Height)), .One, .White);
 
