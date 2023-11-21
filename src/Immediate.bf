@@ -183,13 +183,65 @@ class Immediate
 		}
 	}
 
-	public void RoundedQuad(Rectangle destination, Rectangle source, float radius, Color color, int stepCount = 8)
+	public void RoundedQuad(Rectangle destination, Rectangle source, float radius, Color color, int stepCount = 4)
 	{
-		EnsureCapacity(_vertexCount + 8, _indexCount + 12);
+		// Calculate the amount of the source region that each corner will occupy.
+		let uDiameter = radius / destination.Size.X * source.Size.X * 2.0f;
+		let vDiameter = radius / destination.Size.Y * source.Size.Y * 2.0f;
+		Vector2 cornerSourceSize = .(uDiameter, vDiameter);
+
+		// Bottom left corner:
+		let horizontalRectangleBottomLeftVertex = _vertexCount + 1;
+		Vector2 bottomLeftPosition = .(destination.Position.X + radius, destination.Position.Y + radius);
+		Rectangle bottomLeftSource = .(.(source.Position.X, source.Position.Y + source.Size.Y - vDiameter), cornerSourceSize);
+		Pie(bottomLeftPosition, radius, .(Math.PI_f, Math.PI_f * 1.5f), bottomLeftSource, color, stepCount);
+		let verticalRectangleBottomLeftVertex = (uint32)(_vertexCount - 1);
+
+		// Bottom right corner:
+		let verticalRectangleBottomRightVertex = _vertexCount + 1;
+		Vector2 bottomRightPosition = .(destination.Position.X + destination.Size.X - radius, destination.Position.Y + radius);
+		Rectangle bottomRightSource = .(.(source.Position.X + source.Size.X - uDiameter, source.Position.Y + source.Size.Y - vDiameter), cornerSourceSize);
+		Pie(bottomRightPosition, radius, .(Math.PI_f * 1.5f, Math.PI_f * 2.0f), bottomRightSource, color, stepCount);
+		let horizontalRectangleBottomRightVertex = (uint32)(_vertexCount - 1);
+
+		// Top right corner:
+		let horizontalRectangleTopRightVertex = _vertexCount + 1;
+		Vector2 topRightPosition = .(destination.Position.X + destination.Size.X - radius, destination.Position.Y + destination.Size.Y - radius);
+		Rectangle topRightSource = .(.(source.Position.X + source.Size.X - uDiameter, source.Position.Y), cornerSourceSize);
+		Pie(topRightPosition, radius, .(0.0f, Math.PI_f * 0.5f), topRightSource, color, stepCount);
+		let verticalRectangleTopRightVertex = (uint32)(_vertexCount - 1);
+
+		// Top left corner:
+		let verticalRectangleTopLeftVertex = _vertexCount + 1;
+		Vector2 topLeftPosition = .(destination.Position.X + radius, destination.Position.Y + destination.Size.Y - radius);
+		Rectangle topLeftSource = .(.(source.Position.X, source.Position.Y), cornerSourceSize);
+		Pie(topLeftPosition, radius, .(Math.PI_f * 0.5f, Math.PI_f), topLeftSource, color, stepCount);
+		let horizontalRectangleTopLeftVertex = (uint32)(_vertexCount - 1);
+
+		EnsureCapacity(_vertexCount, _indexCount + 12);
+
+		// Connect existing vertices from the corners to fill in the center.
+		// Horizontal rectangle:
+		RawIndex(horizontalRectangleBottomLeftVertex);
+		RawIndex(horizontalRectangleBottomRightVertex);
+		RawIndex(horizontalRectangleTopRightVertex);
+
+		RawIndex(horizontalRectangleBottomLeftVertex);
+		RawIndex(horizontalRectangleTopRightVertex);
+		RawIndex(horizontalRectangleTopLeftVertex);
+
+		// Vertical rectangle:
+		RawIndex(verticalRectangleBottomLeftVertex);
+		RawIndex(verticalRectangleBottomRightVertex);
+		RawIndex(verticalRectangleTopRightVertex);
+
+		RawIndex(verticalRectangleBottomLeftVertex);
+		RawIndex(verticalRectangleTopRightVertex);
+		RawIndex(verticalRectangleTopLeftVertex);
 	}
 
 	// TODO: Maybe combine circular drawing logic?
-	public void Pie(Vector2 position, float radius, Bounds bounds, Rectangle source, Color color, int stepCount = 4)
+	public void Pie(Vector2 position, float radius, Bounds bounds, Rectangle source, Color color, int stepCount = 16)
 	{
 		EnsureCapacity(_vertexCount + stepCount + 2, _indexCount + stepCount * 3);
 

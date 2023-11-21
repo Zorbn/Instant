@@ -75,8 +75,8 @@ class Program
 			//im.Vertex(.(32.0f, 32.0f), .(1.0f, 1.0f), .Blue);
 
 			// im.Circle(.(100.0f, 100.0f), 100.0f, .(.Zero, .(2.0f, 2.0f)), .Blue);
-			im.Pie(.(100.0f, 100.0f), 100.0f, .(0.0f, Math.PI_f * 1.75f), .(.Zero, .(2.0f, 2.0f)), .Blue, 16);
-			//im.RoundedQuad(.(.(100.0f, 100.0f), .(50.0f, 50.0f)), .One, 10.0f, .Red);
+			//im.Pie(.(100.0f, 100.0f), 100.0f, .(0.0f, Math.PI_f * 1.75f), .(.Zero, .(2.0f, 2.0f)), .Blue, 16);
+			im.RoundedQuad(.(.(100.0f, 100.0f), .(50.0f, 50.0f)), .One, 10.0f, .Red);
 
 			im.Flush(smallCanvas, checkerTexture);
 
