@@ -155,7 +155,7 @@ class Immediate
 			source.Position.X, source.Position.Y + source.Size.Y, color.R, color.G, color.B, color.A);
 	}
 
-	public void Circle(Vector2 position, float radius, Color color, int stepCount = 16)
+	public void Circle(Vector2 position, float radius, Rectangle source, Color color, int stepCount = 16)
 	{
 		let triangleCount = stepCount - 2;
 
@@ -170,12 +170,50 @@ class Immediate
 			let sin = Math.Sin(angle);
 			let x = position.X + cos * radius;
 			let y = position.Y + sin * radius;
-			let u = (cos + 1) * 0.5f;
-			let v = (sin + 1) * 0.5f;
+			let u = source.Position.X + (cos + 1) * 0.5f * source.Size.X;
+			let v = source.Position.Y + (sin + 1) * 0.5f * source.Size.Y;
 			RawVertex(x, y, u, v, color.R, color.G, color.B, color.A);
 		}
 
 		for (uint32 step = 1; step < stepCount - 1; step++)
+		{
+			RawIndex(baseIndex);
+			RawIndex(baseIndex + step + 1);
+			RawIndex(baseIndex + step);
+		}
+	}
+
+	public void RoundedQuad(Rectangle destination, Rectangle source, float radius, Color color, int stepCount = 8)
+	{
+		EnsureCapacity(_vertexCount + 8, _indexCount + 12);
+	}
+
+	// TODO: Maybe combine circular drawing logic?
+	public void Pie(Vector2 position, float radius, Bounds bounds, Rectangle source, Color color, int stepCount = 4)
+	{
+		EnsureCapacity(_vertexCount + stepCount + 2, _indexCount + stepCount * 3);
+
+		let angleStep = bounds.Range / stepCount;
+		let baseIndex = _vertexCount;
+
+		let centerU = source.Position.X + source.Size.X * 0.5f;
+		let centerV = source.Position.Y + source.Size.Y * 0.5f;
+		RawVertex(position.X, position.Y, centerU, centerV, color.R, color.G, color.B, color.A);
+
+		for (var i = 0; i <= stepCount; i++)
+		{
+			var angle = bounds.Min + angleStep * i;
+
+			let cos = Math.Cos(angle);
+			let sin = Math.Sin(angle);
+			let x = position.X + cos * radius;
+			let y = position.Y + sin * radius;
+			let u = source.Position.X + (cos + 1) * 0.5f * source.Size.X;
+			let v = source.Position.Y + (sin + 1) * 0.5f * source.Size.Y;
+			RawVertex(x, y, u, v, color.R, color.G, color.B, color.A);
+		}
+
+		for (uint32 step = 1; step <= stepCount; step++)
 		{
 			RawIndex(baseIndex);
 			RawIndex(baseIndex + step + 1);

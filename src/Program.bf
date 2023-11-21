@@ -32,8 +32,8 @@ class Program
 
 		var wasResized = true;
 		var screenCanvas = new Canvas(window);
-		var smallCanvas = scope Canvas(256, 256);
-		var blankTexture = scope Texture(1, 1, .Pixelated, scope .(255, 255, 255, 255));
+		var smallCanvas = scope Canvas(640, 480);
+		//var blankTexture = scope Texture(1, 1, .Pixelated, scope .(255, 255, 255, 255));
 		var checkerTexture = scope Texture(2, 2, .Pixelated,
 			scope .(255, 255, 255, 255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 255, 255));
 
@@ -70,11 +70,13 @@ class Program
 			smallCanvas.Clear(.(38.0f / 255.0f, 129.0f / 255.0f, 217.0f / 255.0f, 1.0f));
 			screenCanvas.Clear(.Green);
 
-			im.Vertex(.(0.0f, 0.0f), .(0.0f, 0.0f), .Red);
-			im.Vertex(.(32.0f, 0.0f), .(1.0f, 0.0f), .Green);
-			im.Vertex(.(32.0f, 32.0f), .(1.0f, 1.0f), .Blue);
+			//im.Vertex(.(0.0f, 0.0f), .(0.0f, 0.0f), .Red);
+			//im.Vertex(.(32.0f, 0.0f), .(1.0f, 0.0f), .Green);
+			//im.Vertex(.(32.0f, 32.0f), .(1.0f, 1.0f), .Blue);
 
-			im.Circle(.(50.0f, 50.0f), 50.0f, .Blue);
+			// im.Circle(.(100.0f, 100.0f), 100.0f, .(.Zero, .(2.0f, 2.0f)), .Blue);
+			im.Pie(.(100.0f, 100.0f), 100.0f, .(0.0f, Math.PI_f * 1.75f), .(.Zero, .(2.0f, 2.0f)), .Blue, 16);
+			//im.RoundedQuad(.(.(100.0f, 100.0f), .(50.0f, 50.0f)), .One, 10.0f, .Red);
 
 			im.Flush(smallCanvas, checkerTexture);
 
