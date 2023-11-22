@@ -1,11 +1,42 @@
 using System;
 using SDL2;
 using OpenGL;
+using System.Diagnostics;
 
 namespace Instant;
 
 class Program
 {
+	class Image
+	{
+		public int Width;
+		public int Height;
+		public uint8[] Pixels ~ delete _;
+
+		public this(String path)
+		{
+			let loadedSurface = SDLImage.Load(path.CStr());
+
+			if (loadedSurface == null)
+			{
+				Runtime.FatalError(scope $"Failed to load image: {path}");
+			}
+
+			Width = loadedSurface.w;
+			Height = loadedSurface.h;
+			Pixels = new uint8[Width * Height * 4];
+
+			let result = SDL.ConvertPixels(loadedSurface.w, loadedSurface.h, loadedSurface.format.format,
+				loadedSurface.pixels, loadedSurface.pitch, SDL.PIXELFORMAT_ABGR8888, &Pixels[0], loadedSurface.w * 4);
+			SDL.FreeSurface(loadedSurface);
+
+			if (result < 0)
+			{
+				Runtime.FatalError(scope $"Failed to convert image: {path}");
+			}
+		}
+	}
+
 	public static void Main()
 	{
 		Console.WriteLine("Hello, World!");
@@ -24,21 +55,33 @@ class Program
 
 		let window = SDL.CreateWindow("Instant", .Centered, .Centered, 640, 480, .OpenGL | .Shown | .Resizable);
 		SDL.GL_CreateContext(window);
-		GL.Init((procname) => SDL.GL_GetProcAddress(procname.ToScopeCStr!()));
 
-		GL.glEnable(.GL_BLEND);
+		GL.Init((procname) => SDL.GL_GetProcAddress(procname.ToScopeCStr!()));
 
 		var im = scope Immediate();
 
 		var wasResized = true;
+		var stopwatch = scope Stopwatch();
+		stopwatch.Start();
+		var time = 0.0f;
+
 		var screenCanvas = new Canvas(window);
 		var smallCanvas = scope Canvas(640, 480);
-		//var blankTexture = scope Texture(1, 1, .Pixelated, scope .(255, 255, 255, 255));
-		var checkerTexture = scope Texture(2, 2, .Pixelated,
-			scope .(255, 255, 255, 255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 255, 255));
+
+		var testImage = scope Image("Test.png");
+		var testTexture = scope Texture(testImage.Width, testImage.Height, .Pixelated, .(testImage.Pixels));
+		//var blankTexture = scope Texture(1, 1, .Pixelated, scope .(.(255, 255, 255, 255)));
+		//var checkerTexture = scope Texture(2, 2, .Pixelated,
+		//	.(scope .(255, 255, 255, 125, 0, 0, 0, 125, 0, 0, 0, 125, 255, 255, 255, 125)));
 
 		main:while (true)
 		{
+			float deltaTime = (.)stopwatch.Elapsed.TotalSeconds;
+			time += deltaTime;
+			stopwatch.Restart();
+
+			// Console.WriteLine($"fps: {1.0f / deltaTime}");
+
 			if (wasResized)
 			{
 				delete screenCanvas;
@@ -78,13 +121,13 @@ class Program
 			//im.Pie(.(.(100.0f, 100.0f), 100.0f), .(0.0f, Math.PI_f * 1.75f), .(.Zero, .(2.0f, 2.0f)), .Blue, 16);
 			//im.RotatedPie(.(.(400.0f, 100.0f), 100.0f), Math.PI_f * 0.25f, .(0.0f, Math.PI_f * 1.75f), .(.Zero, .(2.0f, 2.0f)), .Blue, 16);
 			//im.RoundedQuad(.(.(100.0f, 100.0f), .(50.0f, 50.0f)), .One, 10.0f, .Red);
-			im.RotatedRoundedQuad(.(.(100.0f, 100.0f), .(50.0f, 50.0f), .Zero, Math.PI_f * 0.25f), .(.Zero, .One * 2.0f), 10.0f, .Blue);
+			im.RotatedRoundedQuad(.(.(100.0f, 100.0f), .(50.0f, 50.0f), .Zero, time), .(.Zero, .One * 2.0f), 10.0f, .Blue);
 			//im.RoundedQuad(.(.(300.0f, 100.0f), .(50.0f, 50.0f)), .One, 10.0f, .Red);
-			im.Quad(.(.(300.0f, 100.0f), .(50.0f, 50.0f)), .One, .Red);
+			im.RotatedQuad(.(.(300.0f, 100.0f), .(50.0f, 50.0f), .(25.0f, 25.0f), time), .One, .Red);
 			//im.RotatedQuad(.(.(100.0f, 100.0f), .(50.0f, 50.0f), .(0.0f, 0.0f), Math.PI_f * 0.25f), .One, .Blue);
 			//im.RotatedQuad(.(.(100.0f, 100.0f), .(50.0f, 50.0f), .(25.0f, 25.0f), Math.PI_f * 0.25f), .One, .Red);
 
-			im.Flush(smallCanvas, checkerTexture);
+			im.Flush(smallCanvas, testTexture);
 
 			im.Quad(.(.Zero, .(screenCanvas.Width, screenCanvas.Height)), .One, .White);
 

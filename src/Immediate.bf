@@ -114,6 +114,9 @@ class Immediate
 	{
 		if (_indexCount == 0) return;
 
+		GL.glEnable(.GL_BLEND);
+		GL.glBlendFunc(.GL_SRC_ALPHA, .GL_ONE_MINUS_SRC_ALPHA);
+
 		GL.glBindFramebuffer(.GL_FRAMEBUFFER, canvas.Framebuffer);
 		GL.glViewport(0, 0, (.)canvas.Width, (.)canvas.Height);
 
@@ -137,6 +140,8 @@ class Immediate
 #else
 		GL.glDrawElements(.GL_TRIANGLES, _indexCount, .GL_UNSIGNED_INT, &_indices[0]);
 #endif
+
+		GL.glDisable(.GL_BLEND);
 	}
 
 	public void Clear()
@@ -224,6 +229,7 @@ class Immediate
 		Vector2 cornerSourceSize = .(uDiameter, vDiameter);
 
 		// Bottom left corner:
+		let bottomLeftCornerVertex = _vertexCount;
 		let horizontalRectangleBottomLeftVertex = _vertexCount + 1;
 		Vector2 bottomLeftPosition = destination.BottomLeft + Vector2(radius, radius).RotatedAround(destination);
 		Rectangle bottomLeftSource = .(source.BottomLeft, cornerSourceSize);
@@ -231,6 +237,7 @@ class Immediate
 		let verticalRectangleBottomLeftVertex = (uint32)(_vertexCount - 1);
 
 		// Bottom right corner:
+		let bottomRightCornerVertex = _vertexCount;
 		let verticalRectangleBottomRightVertex = _vertexCount + 1;
 		Vector2 bottomRightPosition = destination.BottomRight + Vector2(-radius, radius).RotatedAround(destination);
 		Rectangle bottomRightSource = .(source.BottomRight + .(-uDiameter, 0.0f), cornerSourceSize);
@@ -238,6 +245,7 @@ class Immediate
 		let horizontalRectangleBottomRightVertex = (uint32)(_vertexCount - 1);
 
 		// Top right corner:
+		let topRightCornerVertex = _vertexCount;
 		let horizontalRectangleTopRightVertex = _vertexCount + 1;
 		Vector2 topRightPosition = destination.TopRight + Vector2(-radius, -radius).RotatedAround(destination);
 		Rectangle topRightSource = .(source.TopRight + .(-uDiameter, -vDiameter), cornerSourceSize);
@@ -245,6 +253,7 @@ class Immediate
 		let verticalRectangleTopRightVertex = (uint32)(_vertexCount - 1);
 
 		// Top left corner:
+		let topLeftCornerVertex = _vertexCount;
 		let verticalRectangleTopLeftVertex = _vertexCount + 1;
 		Vector2 topLeftPosition = destination.TopLeft + Vector2(radius, -radius).RotatedAround(destination);
 		Rectangle topLeftSource = .(source.TopLeft + .(0.0f, -vDiameter), cornerSourceSize);
@@ -263,14 +272,22 @@ class Immediate
 		RawIndex(horizontalRectangleTopRightVertex);
 		RawIndex(horizontalRectangleTopLeftVertex);
 
-		// Vertical rectangle:
-		RawIndex(verticalRectangleBottomLeftVertex);
-		RawIndex(verticalRectangleBottomRightVertex);
+		// Vertical rectangles:
+		RawIndex(topLeftCornerVertex);
+		RawIndex(topRightCornerVertex);
 		RawIndex(verticalRectangleTopRightVertex);
 
-		RawIndex(verticalRectangleBottomLeftVertex);
+		RawIndex(topLeftCornerVertex);
 		RawIndex(verticalRectangleTopRightVertex);
 		RawIndex(verticalRectangleTopLeftVertex);
+
+		RawIndex(bottomLeftCornerVertex);
+		RawIndex(bottomRightCornerVertex);
+		RawIndex(verticalRectangleBottomRightVertex);
+
+		RawIndex(bottomLeftCornerVertex);
+		RawIndex(verticalRectangleBottomRightVertex);
+		RawIndex(verticalRectangleBottomLeftVertex);
 	}
 
 	[Inline]
