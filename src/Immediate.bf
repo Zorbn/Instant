@@ -9,7 +9,9 @@ class Immediate
 {
 	const String VertexCode =
 		"""
-		#version 330
+		#version 300 es
+		
+		precision highp float;
 		
 		uniform mat4 projectionMatrix;
 		
@@ -29,7 +31,9 @@ class Immediate
 		""";
 	const String FragmentCode =
 		"""
-		#version 330
+		#version 300 es
+		
+		precision highp float;
 		
 		uniform sampler2D textureSampler;
 		
@@ -48,7 +52,7 @@ class Immediate
 	const int ComponentsPerVertex = 8;
 
 	float[] _vertexComponents ~ delete _;
-	int _vertexCapacity;
+	uint32 _vertexCapacity;
 	uint32 _vertexCount;
 	uint32[] _indices ~ delete _;
 	int32 _indexCount;
@@ -57,12 +61,19 @@ class Immediate
 	uint32 _shaderProgram ~ GL.glDeleteProgram(_);
 	uint32 _vao ~ GL.glDeleteVertexArrays(1, &_);
 	uint32 _vbo ~ GL.glDeleteBuffers(1, &_);
+
+#if BF_PLATFORM_WASM
+	// In WebGL, indices are a separate buffer.
+	// In CoreGL, they are passed directly through glDrawElements.
+	uint32 _indexBuffer ~ GL.glDeleteBuffers(1, &_);
+#endif
+
 	int32 _projectionMatrixUniform;
 
 	public this(int vertexCapacity = 1024, int indexCapacity = 1024)
 	{
 		_vertexComponents = new .[vertexCapacity * ComponentsPerVertex];
-		_vertexCapacity = vertexCapacity;
+		_vertexCapacity = (.)vertexCapacity;
 		_indices = new .[indexCapacity];
 
 		let vertexShader = GLHelper.CreateShader(VertexCode, .GL_VERTEX_SHADER);
@@ -71,6 +82,12 @@ class Immediate
 
 		GL.glDeleteShader(vertexShader);
 		GL.glDeleteShader(fragmentShader);
+
+#if BF_PLATFORM_WASM
+		GL.glGenBuffers(1, &_indexBuffer);
+		GL.glBindBuffer(.GL_ELEMENT_ARRAY_BUFFER, _indexBuffer);
+		GL.glBufferData(.GL_ELEMENT_ARRAY_BUFFER, (.)(_indices.Count * sizeof(uint32)), null, .GL_STATIC_DRAW);
+#endif
 
 		let inPosition = 0, inTextureCoordinates = 1, inColor = 2;
 		GL.glBindAttribLocation(_shaderProgram, inPosition, "inPosition");
@@ -106,10 +123,20 @@ class Immediate
 		GL.glBindBuffer(.GL_ARRAY_BUFFER, _vbo);
 		GL.glBufferSubData(.GL_ARRAY_BUFFER, 0, (.)(_vertexCount * ComponentsPerVertex * sizeof(float)), &_vertexComponents[0]);
 
+#if BF_PLATFORM_WASM
+		GL.glBindBuffer(.GL_ELEMENT_ARRAY_BUFFER, _indexBuffer);
+		GL.glBufferSubData(.GL_ELEMENT_ARRAY_BUFFER, 0, (.)(_indexCount * sizeof(uint32)), &_indices[0]);
+#endif
+
 		GL.glUseProgram(_shaderProgram);
 		GL.glBindTexture(.GL_TEXTURE_2D, texture.Texture);
 		GL.glBindVertexArray(_vao);
+
+#if BF_PLATFORM_WASM
+		GL.glDrawElements(.GL_TRIANGLES, _indexCount, .GL_UNSIGNED_INT, (void*)0);
+#else
 		GL.glDrawElements(.GL_TRIANGLES, _indexCount, .GL_UNSIGNED_INT, &_indices[0]);
+#endif
 	}
 
 	public void Clear()
@@ -130,10 +157,10 @@ class Immediate
 		EnsureCapacity(_vertexCount + 1, _indexCount + 1);
 
 		RawIndex(_vertexCount);
-		RawVertex(position.X, position.Y, uv.X, uv.Y, color.R, color.G, color.B, color.A);
+		RawVertex(position, uv, color);
 	}
 
-	public void Quad(Rectangle destination, Rectangle source, Color color)
+	public void RotatedQuad(RotatedRectangle destination, Rectangle source, Color color)
 	{
 		EnsureCapacity(_vertexCount + 4, _indexCount + 6);
 
@@ -145,37 +172,37 @@ class Immediate
 		RawIndex(_vertexCount + 2);
 		RawIndex(_vertexCount + 3);
 
-		RawVertex(destination.Position.X, destination.Position.Y,
-			source.Position.X, source.Position.Y, color.R, color.G, color.B, color.A);
-		RawVertex(destination.Position.X + destination.Size.X, destination.Position.Y,
-			source.Position.X + source.Size.X, source.Position.Y, color.R, color.G, color.B, color.A);
-		RawVertex(destination.Position.X + destination.Size.X, destination.Position.Y + destination.Size.Y,
-			source.Position.X + source.Size.X, source.Position.Y + source.Size.Y, color.R, color.G, color.B, color.A);
-		RawVertex(destination.Position.X, destination.Position.Y + destination.Size.Y,
-			source.Position.X, source.Position.Y + source.Size.Y, color.R, color.G, color.B, color.A);
+		RawVertex(destination.BottomLeft, source.BottomLeft, color);
+		RawVertex(destination.BottomRight, source.BottomRight, color);
+		RawVertex(destination.TopRight, source.TopRight, color);
+		RawVertex(destination.TopLeft, source.TopLeft, color);
 	}
 
-	public void Circle(Vector2 position, float radius, Rectangle source, Color color, int stepCount = 16)
+	[Inline]
+	public void Quad(Rectangle destination, Rectangle source, Color color)
+	{
+		RotatedQuad(.(destination, .Zero, 0.0f), source, color);
+	}
+
+	public void RotatedCircle(Circle circle, float rotation, Rectangle source, Color color, int stepCount = 16)
 	{
 		let triangleCount = stepCount - 2;
 
-		EnsureCapacity(_vertexCount + stepCount, _indexCount + triangleCount * 3);
+		EnsureCapacity(_vertexCount + (.)stepCount, _indexCount + (.)triangleCount * 3);
 
 		let angleStep = Math.PI_f * 2.0f / stepCount;
 		let baseIndex = _vertexCount;
 
 		for (var angle = 0.0f; angle < Math.PI_f * 2.0f; angle += angleStep)
 		{
-			let cos = Math.Cos(angle);
-			let sin = Math.Sin(angle);
-			let x = position.X + cos * radius;
-			let y = position.Y + sin * radius;
-			let u = source.Position.X + (cos + 1) * 0.5f * source.Size.X;
-			let v = source.Position.Y + (sin + 1) * 0.5f * source.Size.Y;
-			RawVertex(x, y, u, v, color.R, color.G, color.B, color.A);
+			let x = circle.Position.X + Math.Cos(angle + rotation) * circle.Radius;
+			let y = circle.Position.Y + Math.Sin(angle + rotation) * circle.Radius;
+			let u = source.Position.X + (Math.Cos(angle) + 1) * 0.5f * source.Size.X;
+			let v = source.Position.Y + (Math.Sin(angle) + 1) * 0.5f * source.Size.Y;
+			RawVertex(.(x, y), .(u, v), color);
 		}
 
-		for (uint32 step = 1; step < stepCount - 1; step++)
+		for (uint32 step = 1; step < (.)stepCount - 1; step++)
 		{
 			RawIndex(baseIndex);
 			RawIndex(baseIndex + step + 1);
@@ -183,39 +210,46 @@ class Immediate
 		}
 	}
 
-	public void RoundedQuad(Rectangle destination, Rectangle source, float radius, Color color, int stepCount = 4)
+	[Inline]
+	public void Circle(Circle circle, Rectangle source, Color color, int stepCount = 16)
+	{
+		RotatedCircle(circle, 0.0f, source, color, stepCount);
+	}
+
+	public void RotatedRoundedQuad(RotatedRectangle destination, Rectangle source, float radius, Color color, int stepCount = 4)
 	{
 		// Calculate the amount of the source region that each corner will occupy.
 		let uDiameter = radius / destination.Size.X * source.Size.X * 2.0f;
 		let vDiameter = radius / destination.Size.Y * source.Size.Y * 2.0f;
 		Vector2 cornerSourceSize = .(uDiameter, vDiameter);
 
+		// TODO: Use source.Bottom/Top,Left/Right fields.
 		// Bottom left corner:
 		let horizontalRectangleBottomLeftVertex = _vertexCount + 1;
-		Vector2 bottomLeftPosition = .(destination.Position.X + radius, destination.Position.Y + radius);
+		Vector2 bottomLeftPosition = destination.BottomLeft + Vector2(radius, radius).RotatedAround(destination);
 		Rectangle bottomLeftSource = .(.(source.Position.X, source.Position.Y + source.Size.Y - vDiameter), cornerSourceSize);
-		Pie(bottomLeftPosition, radius, .(Math.PI_f, Math.PI_f * 1.5f), bottomLeftSource, color, stepCount);
+		RotatedPie(.(bottomLeftPosition, radius), destination.Rotation, .(Math.PI_f, Math.PI_f * 1.5f), bottomLeftSource, color, stepCount);
 		let verticalRectangleBottomLeftVertex = (uint32)(_vertexCount - 1);
 
 		// Bottom right corner:
 		let verticalRectangleBottomRightVertex = _vertexCount + 1;
-		Vector2 bottomRightPosition = .(destination.Position.X + destination.Size.X - radius, destination.Position.Y + radius);
+		Vector2 bottomRightPosition = destination.BottomRight + Vector2(-radius, radius).RotatedAround(destination);
 		Rectangle bottomRightSource = .(.(source.Position.X + source.Size.X - uDiameter, source.Position.Y + source.Size.Y - vDiameter), cornerSourceSize);
-		Pie(bottomRightPosition, radius, .(Math.PI_f * 1.5f, Math.PI_f * 2.0f), bottomRightSource, color, stepCount);
+		RotatedPie(.(bottomRightPosition, radius), destination.Rotation, .(Math.PI_f * 1.5f, Math.PI_f * 2.0f), bottomRightSource, color, stepCount);
 		let horizontalRectangleBottomRightVertex = (uint32)(_vertexCount - 1);
 
 		// Top right corner:
 		let horizontalRectangleTopRightVertex = _vertexCount + 1;
-		Vector2 topRightPosition = .(destination.Position.X + destination.Size.X - radius, destination.Position.Y + destination.Size.Y - radius);
+		Vector2 topRightPosition = destination.TopRight + Vector2(-radius, -radius).RotatedAround(destination);
 		Rectangle topRightSource = .(.(source.Position.X + source.Size.X - uDiameter, source.Position.Y), cornerSourceSize);
-		Pie(topRightPosition, radius, .(0.0f, Math.PI_f * 0.5f), topRightSource, color, stepCount);
+		RotatedPie(.(topRightPosition, radius), destination.Rotation, .(0.0f, Math.PI_f * 0.5f), topRightSource, color, stepCount);
 		let verticalRectangleTopRightVertex = (uint32)(_vertexCount - 1);
 
 		// Top left corner:
 		let verticalRectangleTopLeftVertex = _vertexCount + 1;
-		Vector2 topLeftPosition = .(destination.Position.X + radius, destination.Position.Y + destination.Size.Y - radius);
+		Vector2 topLeftPosition = destination.TopLeft + Vector2(radius, -radius).RotatedAround(destination);
 		Rectangle topLeftSource = .(.(source.Position.X, source.Position.Y), cornerSourceSize);
-		Pie(topLeftPosition, radius, .(Math.PI_f * 0.5f, Math.PI_f), topLeftSource, color, stepCount);
+		RotatedPie(.(topLeftPosition, radius), destination.Rotation, .(Math.PI_f * 0.5f, Math.PI_f), topLeftSource, color, stepCount);
 		let horizontalRectangleTopLeftVertex = (uint32)(_vertexCount - 1);
 
 		EnsureCapacity(_vertexCount, _indexCount + 12);
@@ -240,32 +274,36 @@ class Immediate
 		RawIndex(verticalRectangleTopLeftVertex);
 	}
 
-	// TODO: Maybe combine circular drawing logic?
-	public void Pie(Vector2 position, float radius, Bounds bounds, Rectangle source, Color color, int stepCount = 16)
+	[Inline]
+	public void RoundedQuad(Rectangle destination, Rectangle source, float radius, Color color, int stepCount = 4)
 	{
-		EnsureCapacity(_vertexCount + stepCount + 2, _indexCount + stepCount * 3);
+		RotatedRoundedQuad(.(destination, .Zero, 0.0f), source, radius, color, stepCount);
+	}
+
+	// TODO: Maybe combine circular drawing logic?
+	public void RotatedPie(Circle circle, float rotation, Bounds bounds, Rectangle source, Color color, int stepCount = 16)
+	{
+		EnsureCapacity(_vertexCount + (.)stepCount + 2, _indexCount + (.)stepCount * 3);
 
 		let angleStep = bounds.Range / stepCount;
 		let baseIndex = _vertexCount;
 
 		let centerU = source.Position.X + source.Size.X * 0.5f;
 		let centerV = source.Position.Y + source.Size.Y * 0.5f;
-		RawVertex(position.X, position.Y, centerU, centerV, color.R, color.G, color.B, color.A);
+		RawVertex(circle.Position, .(centerU, centerV), color);
 
 		for (var i = 0; i <= stepCount; i++)
 		{
 			var angle = bounds.Min + angleStep * i;
 
-			let cos = Math.Cos(angle);
-			let sin = Math.Sin(angle);
-			let x = position.X + cos * radius;
-			let y = position.Y + sin * radius;
-			let u = source.Position.X + (cos + 1) * 0.5f * source.Size.X;
-			let v = source.Position.Y + (sin + 1) * 0.5f * source.Size.Y;
-			RawVertex(x, y, u, v, color.R, color.G, color.B, color.A);
+			let x = circle.Position.X + Math.Cos(angle + rotation) * circle.Radius;
+			let y = circle.Position.Y + Math.Sin(angle + rotation) * circle.Radius;
+			let u = source.Position.X + (Math.Cos(angle) + 1) * 0.5f * source.Size.X;
+			let v = source.Position.Y + (Math.Sin(angle) + 1) * 0.5f * source.Size.Y;
+			RawVertex(.(x, y), .(u, v), color);
 		}
 
-		for (uint32 step = 1; step <= stepCount; step++)
+		for (uint32 step = 1; step <= (.)stepCount; step++)
 		{
 			RawIndex(baseIndex);
 			RawIndex(baseIndex + step + 1);
@@ -273,20 +311,26 @@ class Immediate
 		}
 	}
 
+	[Inline]
+	public void Pie(Circle circle, Bounds bounds, Rectangle source, Color color, int stepCount = 16)
+	{
+		RotatedPie(circle, 0.0f, bounds, source, color, stepCount);
+	}
+
 	// Add a vertex that isn't paired with an index, and without ensuring capacity.
 	[Inline]
-	void RawVertex(float x, float y, float u, float v, float r, float g, float b, float a)
+	void RawVertex(Vector2 position, Vector2 uv, Color color)
 	{
-		let baseIndex = _vertexCount * ComponentsPerVertex;
+		int baseIndex = (.)_vertexCount * ComponentsPerVertex;
 
-		_vertexComponents[baseIndex] = x;
-		_vertexComponents[baseIndex + 1] = y;
-		_vertexComponents[baseIndex + 2] = u;
-		_vertexComponents[baseIndex + 3] = v;
-		_vertexComponents[baseIndex + 4] = r;
-		_vertexComponents[baseIndex + 5] = g;
-		_vertexComponents[baseIndex + 6] = b;
-		_vertexComponents[baseIndex + 7] = a;
+		_vertexComponents[baseIndex] = position.X;
+		_vertexComponents[baseIndex + 1] = position.Y;
+		_vertexComponents[baseIndex + 2] = uv.X;
+		_vertexComponents[baseIndex + 3] = uv.Y;
+		_vertexComponents[baseIndex + 4] = color.R;
+		_vertexComponents[baseIndex + 5] = color.G;
+		_vertexComponents[baseIndex + 6] = color.B;
+		_vertexComponents[baseIndex + 7] = color.A;
 
 		_vertexCount++;
 	}
@@ -298,15 +342,16 @@ class Immediate
 		_indices[_indexCount++] = index;
 	}
 
-	void EnsureCapacity(int vertexCapacity, int indexCapacity)
+	void EnsureCapacity(uint32 vertexCapacity, int32 indexCapacity)
 	{
-		int newVertexCapacity = _vertexCapacity;
+		uint32 newVertexCapacity = _vertexCapacity;
 		while (newVertexCapacity < vertexCapacity) newVertexCapacity *= 2;
 		if (newVertexCapacity != _vertexCapacity)
 		{
 			delete _vertexComponents;
 			_vertexComponents = new .[newVertexCapacity * ComponentsPerVertex];
 			_vertexCapacity = newVertexCapacity;
+			GL.glBindBuffer(.GL_ARRAY_BUFFER, _vbo);
 			GL.glBufferData(.GL_ARRAY_BUFFER, (.)(_vertexCapacity * ComponentsPerVertex * sizeof(float)), null, .GL_STATIC_DRAW);
 		}
 
@@ -316,6 +361,11 @@ class Immediate
 		{
 			delete _indices;
 			_indices = new .[newIndexCapacity];
+
+#if BF_PLATFORM_WASM
+			GL.glBindBuffer(.GL_ELEMENT_ARRAY_BUFFER, _indexBuffer);
+			GL.glBufferData(.GL_ELEMENT_ARRAY_BUFFER, (.)(_indices.Count * sizeof(uint32)), null, .GL_STATIC_DRAW);
+#endif
 		}
 	}
 }

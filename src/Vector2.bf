@@ -23,4 +23,45 @@ struct Vector2
 		X = x;
 		Y = y;
 	}
+
+	public static Vector2 operator +(Vector2 a, Vector2 b)
+	{
+		return .(a.X + b.X, a.Y + b.Y);
+	}
+
+	public static Vector2 operator -(Vector2 a, Vector2 b)
+	{
+		return .(a.X - b.X, a.Y - b.Y);
+	}
+
+	public static Vector2 operator *(Vector2 a, Vector2 b)
+	{
+		return .(a.X * b.X, a.Y * b.Y);
+	}
+
+	public Vector2 RotatedAround(Vector2 pivot, float rotation)
+	{
+		let cos = Math.Cos(rotation);
+		let sin = Math.Sin(rotation);
+
+		let relativeX = X - pivot.X;
+		let relativeY = Y - pivot.Y;
+		let rotatedX = pivot.X + relativeX * cos - relativeY * sin;
+		let rotatedY = pivot.Y + relativeX * sin + relativeY * cos;
+
+		return .(rotatedX, rotatedY);
+	}
+
+	public Vector2 RotatedAround(RotatedRectangle rectangle)
+	{
+		let cos = Math.Cos(rectangle.Rotation);
+		let sin = Math.Sin(rectangle.Rotation);
+
+		let relativeX = X - rectangle.Pivot.X;
+		let relativeY = Y - rectangle.Pivot.Y;
+		let rotatedX = rectangle.Pivot.X + relativeX * cos - relativeY * sin;
+		let rotatedY = rectangle.Pivot.Y + relativeX * sin + relativeY * cos;
+
+		return .(rotatedX, rotatedY);
+	}
 }

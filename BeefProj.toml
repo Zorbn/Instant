@@ -4,3 +4,14 @@ Dependencies = {corlib = "*", SDL2 = "*"}
 [Project]
 Name = "Instant"
 StartupObject = "Instant.Program"
+
+[Platform.Wasm]
+EnableThreads = false
+
+[Configs.Debug.wasm32]
+TargetDirectory = "$(ProjectDir)\\dist\\"
+OtherLinkFlags = "$(LinkFlags) -sASYNCIFY -sUSE_WEBGL2=1 -sMIN_WEBGL_VERSION=2 -sMAX_WEBGL_VERSION=2 -sUSE_SDL=2 -sUSE_SDL_IMAGE=2 -sUSE_SDL_MIXER=2 -sUSE_SDL_TTF=2 --use-preload-plugins -s INITIAL_MEMORY=67108864 -s ALLOW_MEMORY_GROWTH=1 -s ASSERTIONS=1 -s SAFE_HEAP=0 -s DETERMINISTIC=1"
+
+[Configs.Release.wasm32]
+TargetDirectory = "$(ProjectDir)\\dist\\"
+OtherLinkFlags = "$(LinkFlags) -sASYNCIFY -sUSE_WEBGL2=1 -sMIN_WEBGL_VERSION=2 -sMAX_WEBGL_VERSION=2 -sUSE_SDL=2 -sUSE_SDL_IMAGE=2 -sUSE_SDL_MIXER=2 -sUSE_SDL_TTF=2 --use-preload-plugins -s INITIAL_MEMORY=67108864 -s ALLOW_MEMORY_GROWTH=1 -s ASSERTIONS=1 -s SAFE_HEAP=0 -s DETERMINISTIC=1"

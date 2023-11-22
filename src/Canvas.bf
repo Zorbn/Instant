@@ -26,10 +26,11 @@ class Canvas
 		Texture = new Texture(width, height, .Pixelated, null);
 
 		GL.glBindFramebuffer(.GL_FRAMEBUFFER, Framebuffer);
-		GL.glFramebufferTexture(.GL_FRAMEBUFFER, .GL_COLOR_ATTACHMENT0, Texture.Texture, 0);
+		GL.glFramebufferTexture2D(.GL_FRAMEBUFFER, .GL_COLOR_ATTACHMENT0, .GL_TEXTURE_2D, Texture.Texture, 0);
 		var drawBufferMode = GL.DrawBufferMode.GL_COLOR_ATTACHMENT0;
 		GL.glDrawBuffers(1, &drawBufferMode);
 
+		// TODO: Make an actual error message here.
 		if (GL.glCheckFramebufferStatus(.GL_FRAMEBUFFER) != .GL_FRAMEBUFFER_COMPLETE) Console.WriteLine("Failed!");
 	}
 
