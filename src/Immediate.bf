@@ -223,32 +223,31 @@ class Immediate
 		let vDiameter = radius / destination.Size.Y * source.Size.Y * 2.0f;
 		Vector2 cornerSourceSize = .(uDiameter, vDiameter);
 
-		// TODO: Use source.Bottom/Top,Left/Right fields.
 		// Bottom left corner:
 		let horizontalRectangleBottomLeftVertex = _vertexCount + 1;
 		Vector2 bottomLeftPosition = destination.BottomLeft + Vector2(radius, radius).RotatedAround(destination);
-		Rectangle bottomLeftSource = .(.(source.Position.X, source.Position.Y + source.Size.Y - vDiameter), cornerSourceSize);
+		Rectangle bottomLeftSource = .(source.BottomLeft, cornerSourceSize);
 		RotatedPie(.(bottomLeftPosition, radius), destination.Rotation, .(Math.PI_f, Math.PI_f * 1.5f), bottomLeftSource, color, stepCount);
 		let verticalRectangleBottomLeftVertex = (uint32)(_vertexCount - 1);
 
 		// Bottom right corner:
 		let verticalRectangleBottomRightVertex = _vertexCount + 1;
 		Vector2 bottomRightPosition = destination.BottomRight + Vector2(-radius, radius).RotatedAround(destination);
-		Rectangle bottomRightSource = .(.(source.Position.X + source.Size.X - uDiameter, source.Position.Y + source.Size.Y - vDiameter), cornerSourceSize);
+		Rectangle bottomRightSource = .(source.BottomRight + .(-uDiameter, 0.0f), cornerSourceSize);
 		RotatedPie(.(bottomRightPosition, radius), destination.Rotation, .(Math.PI_f * 1.5f, Math.PI_f * 2.0f), bottomRightSource, color, stepCount);
 		let horizontalRectangleBottomRightVertex = (uint32)(_vertexCount - 1);
 
 		// Top right corner:
 		let horizontalRectangleTopRightVertex = _vertexCount + 1;
 		Vector2 topRightPosition = destination.TopRight + Vector2(-radius, -radius).RotatedAround(destination);
-		Rectangle topRightSource = .(.(source.Position.X + source.Size.X - uDiameter, source.Position.Y), cornerSourceSize);
+		Rectangle topRightSource = .(source.TopRight + .(-uDiameter, -vDiameter), cornerSourceSize);
 		RotatedPie(.(topRightPosition, radius), destination.Rotation, .(0.0f, Math.PI_f * 0.5f), topRightSource, color, stepCount);
 		let verticalRectangleTopRightVertex = (uint32)(_vertexCount - 1);
 
 		// Top left corner:
 		let verticalRectangleTopLeftVertex = _vertexCount + 1;
 		Vector2 topLeftPosition = destination.TopLeft + Vector2(radius, -radius).RotatedAround(destination);
-		Rectangle topLeftSource = .(.(source.Position.X, source.Position.Y), cornerSourceSize);
+		Rectangle topLeftSource = .(source.TopLeft + .(0.0f, -vDiameter), cornerSourceSize);
 		RotatedPie(.(topLeftPosition, radius), destination.Rotation, .(Math.PI_f * 0.5f, Math.PI_f), topLeftSource, color, stepCount);
 		let horizontalRectangleTopLeftVertex = (uint32)(_vertexCount - 1);
 

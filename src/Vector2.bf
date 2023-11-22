@@ -39,6 +39,12 @@ struct Vector2
 		return .(a.X * b.X, a.Y * b.Y);
 	}
 
+	[Commutable]
+	public static Vector2 operator *(Vector2 a, float b)
+	{
+		return .(a.X * b, a.Y * b);
+	}
+
 	public Vector2 RotatedAround(Vector2 pivot, float rotation)
 	{
 		let cos = Math.Cos(rotation);
