@@ -55,6 +55,7 @@ class Mesh
 		GL.glBufferData(.GL_ARRAY_BUFFER, (.)(_vertexCapacity * ComponentsPerVertex * sizeof(float)), null, .GL_STATIC_DRAW);
 	}
 
+	// TODO: Fix this api, you shouldn't have to pass in shader/projectionMatrix here.
 	public void Draw(Canvas canvas, Texture texture, Shader shader, ref float[16] projectionMatrix)
 	{
 		if (IndexCount == 0) return;

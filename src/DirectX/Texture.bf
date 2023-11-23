@@ -35,9 +35,7 @@ class Texture
 
 		if (pixels != null)
 		{
-			Image.FlipRows(width, height, pixels.Value);
 			GL.glTexImage2D(.GL_TEXTURE_2D, 0, .GL_RGBA, (.)width, (.)height, 0, .GL_RGBA, .GL_UNSIGNED_BYTE, &pixels.Value[0]);
-			Image.FlipRows(width, height, pixels.Value);
 		}
 		else
 		{

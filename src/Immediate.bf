@@ -5,7 +5,7 @@ namespace Instant;
 class Immediate
 {
 	Mesh _mesh ~ delete _;
-	Shader _shader = new .() ~ delete _;
+	Shader _shader /* = new .() TODO ~ delete _*/;
 	float[16] _projectionMatrix;
 
 	public this(int vertexCapacity = 1024, int indexCapacity = 1024)

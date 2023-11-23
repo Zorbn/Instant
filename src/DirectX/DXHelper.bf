@@ -1,58 +1,26 @@
 #if INSTANT_DIRECTX
 
 using System;
+using Win32.Graphics.Direct3D;
+using Win32.Graphics.Direct3D.Fxc;
 
 namespace Instant.DirectX;
 
 static class DXHelper
 {
-	public static uint32 CreateShader(String code/*, GL.ShaderType shaderType*/)
+	public static ID3DBlob* CreateShaderBlob(String code, String name, String entrypoint, String target)
 	{
-		/*let shader = GL.glCreateShader(shaderType);
-		var vertexCodeCStr = code.CStr();
-		var vertexCodeLength = (int32)code.Length;
-		GL.glShaderSource(shader, 1, &vertexCodeCStr, &vertexCodeLength);
-		GL.glCompileShader(shader);
-
-		int32 status = 0;
-		GL.glGetShaderiv(shader, .GL_COMPILE_STATUS, &status);
-		if (status == 0)
+		ID3DBlob* shaderBlob = ?;
+		ID3DBlob* shaderCompileErrorBlob = ?;
+		let result = D3DCompile(code.CStr(), (.)code.Length, (.)name, null, null,
+			(.)entrypoint, (.)target, 0, 0, out shaderBlob, &shaderCompileErrorBlob);
+		if (result != 0)
 		{
-			const int32 infoBufferSize = 1024;
-			char8[infoBufferSize] buffer = ?;
-			int32 length = 0;
-			GL.glGetShaderInfoLog(shader, infoBufferSize, &length, &buffer[0]);
-			let infoLog = scope String(&buffer[0], length);
-			Runtime.FatalError(scope $"Shader compilation error: {infoLog}");
+			Span<char8> errorString = .((char8*)shaderCompileErrorBlob.GetBufferPointer(), (.)shaderCompileErrorBlob.GetBufferSize());
+			Runtime.FatalError(scope $"Failed to compile shader: {errorString}");
 		}
 
-		return shader;*/
-
-		return 0;
-	}
-
-	public static uint32 CreateProgram(uint32 vertexShader, uint32 fragmentShader)
-	{
-		/*let program = GL.glCreateProgram();
-		GL.glAttachShader(program, vertexShader);
-		GL.glAttachShader(program, fragmentShader);
-		GL.glLinkProgram(program);
-
-		int32 status = 0;
-		GL.glGetProgramiv(program, .GL_LINK_STATUS, &status);
-		if (status == 0)
-		{
-			const int32 infoBufferSize = 1024;
-			char8[infoBufferSize] buffer = ?;
-			int32 length = 0;
-			GL.glGetProgramInfoLog(program, infoBufferSize, &length, &buffer[0]);
-			let infoLog = scope String(&buffer[0], length);
-			Runtime.FatalError(scope $"Program linking error: {infoLog}");
-		}
-
-		return program;*/
-
-		return 0;
+		return shaderBlob;
 	}
 }
 

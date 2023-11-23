@@ -4,7 +4,7 @@ Dependencies = {corlib = "*", SDL2 = "*"}
 [Project]
 Name = "Instant"
 StartupObject = "Instant.Program"
-ProcessorMacros = ["INSTANT_OPENGL"]
+ProcessorMacros = ["INSTANT_DIRECTX"]
 
 [Configs.Debug.wasm32]
 TargetDirectory = "$(ProjectDir)\\dist\\"
