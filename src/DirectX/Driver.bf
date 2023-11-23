@@ -23,19 +23,14 @@ class Driver
 	ID3D11Texture2D* _frameBuffer;
 	ID3D11RenderTargetView* _frameBufferView ~ _.Release();
 
-
+	ID3D11RasterizerState* _rasterizerState ~ _.Release();
 	ID3D11BlendState1* _blendState ~ _.Release();
-
-	public Shader _shader;
-	public Mesh _mesh;
 
 	public this(SDL.Window* window)
 	{
 		DeviceInit();
 		SwapChainInit(window);
 		TestRenderingInit();
-		_shader = new Shader(this);
-		_mesh = new Mesh(this);
 	}
 
 	public static SDL.WindowFlags PrepareWindowFlags()
@@ -127,6 +122,14 @@ class Driver
 		Runtime.Assert(result == 0);
 		_frameBuffer.Release();
 
+		/// Create rasterizer state.
+		D3D11_RASTERIZER_DESC rasterizerDescriptor = .();
+		rasterizerDescriptor.FillMode = .SOLID;
+		rasterizerDescriptor.CullMode = .NONE;
+
+		_device.CreateRasterizerState(rasterizerDescriptor, &_rasterizerState);
+		_deviceContext.RSSetState(_rasterizerState);
+
 		/// Create blend state.
 		D3D11_BLEND_DESC1 blendStateDescriptor = .();
 		blendStateDescriptor.RenderTarget[0].BlendEnable = 1;
@@ -148,10 +151,6 @@ class Driver
 		int32 width = 0, height = 0;
 		SDL.GetWindowSize(window, out width, out height);
 
-		float[16] projectionMatrix = ?;
-		Matrix.MatrixOrtho(ref projectionMatrix, 0.0f, width, 0.0f, height, float.MinValue, float.MaxValue);
-		_shader.SetProjectionMatrix(this, ref projectionMatrix);
-
 		/// Draw.
 		float[4] backgroundColor = .(0.1f, 0.2f, 0.6f, 1.0f);
 		_deviceContext.ClearRenderTargetView(ref *_frameBufferView, backgroundColor[0]);
@@ -168,10 +167,6 @@ class Driver
 		_deviceContext.OMSetRenderTargets(1, &_frameBufferView, null);
 
 		_deviceContext.IASetPrimitiveTopology(.D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-		_shader.Bind(this);
-
-		_mesh.Draw(this, canvas, texture, _shader, ref projectionMatrix);
 	}
 
 	public void TestRenderingResize()

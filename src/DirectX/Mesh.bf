@@ -14,20 +14,9 @@ class Mesh
 {
 	public const int ComponentsPerVertex = 8;
 
-	public float[] VertexComponents = new .(
-		-32f, 32f, 0.0f, 0.0f,
-		32f, -32f, 1.0f, 1.0f,
-		-32f, -32f, 0.0f, 1.0f,
-		// -32f, 32f, 0.0f, 0.0f,
-		32f, 32f, 1.0f, 0.0f,
-		// 32f, -32f, 1.0f, 1.0f,
-	) ~ delete _;
-
-	public uint32[] Indices = new .(0, 1, 2, 0, 3, 1) ~ delete _;
-
-	//public float[] VertexComponents ~ delete _;
+	public float[] VertexComponents ~ delete _;
 	public uint32 VertexCount;
-	//public uint32[] Indices ~ delete _;
+	public uint32[] Indices ~ delete _;
 	public int32 IndexCount;
 
 	uint32 _vertexCapacity;
@@ -37,21 +26,15 @@ class Mesh
 
 	public this(Driver driver, int vertexCapacity = 1024, int indexCapacity = 1024)
 	{
-		//VertexComponents = new .[vertexCapacity * ComponentsPerVertex];
-		//_vertexCapacity = (.)vertexCapacity;
-		//Indices = new .[indexCapacity];
-		_vertexCapacity = 4;
-		IndexCount = 6;
-		VertexCount = 4;
+		VertexComponents = new .[vertexCapacity * ComponentsPerVertex];
+		_vertexCapacity = (.)vertexCapacity;
+		Indices = new .[indexCapacity];
 
 		D3D11_BUFFER_DESC vertexBufferDescriptor = .();
 		vertexBufferDescriptor.ByteWidth = (.)VertexComponents.Count * sizeof(float);
 		vertexBufferDescriptor.Usage = .DYNAMIC;
 		vertexBufferDescriptor.CPUAccessFlags = (.)D3D11_CPU_ACCESS_FLAG.WRITE;
 		vertexBufferDescriptor.BindFlags = (.)D3D11_BIND_FLAG.VERTEX_BUFFER;
-
-		D3D11_SUBRESOURCE_DATA vertexSubResourceData = .();
-		vertexSubResourceData.pSysMem = &VertexComponents[0];
 
 		var result = driver.Device.CreateBuffer(vertexBufferDescriptor, null, &_vertexBuffer);
 		Runtime.Assert(result == 0);
@@ -62,9 +45,6 @@ class Mesh
 		indexBufferDescriptor.CPUAccessFlags = (.)D3D11_CPU_ACCESS_FLAG.WRITE;
 		indexBufferDescriptor.BindFlags = (.)D3D11_BIND_FLAG.INDEX_BUFFER;
 
-		D3D11_SUBRESOURCE_DATA indexSubResourceData = .();
-		indexSubResourceData.pSysMem = &Indices[0];
-
 		result = driver.Device.CreateBuffer(indexBufferDescriptor, null, &_indexBuffer);
 		Runtime.Assert(result == 0);
 	}
@@ -73,8 +53,8 @@ class Mesh
 	// TODO: Actually use canvas here.
 	public void Draw(Driver driver, Canvas canvas, Texture texture, Shader shader, ref float[16] projectionMatrix)
 	{
-		//Matrix.MatrixOrtho(ref projectionMatrix, 0.0f, canvas.Width, 0.0f, canvas.Height, float.MinValue, float.MaxValue);
-		//shader.SetProjectionMatrix(driver, ref projectionMatrix);
+		Matrix.MatrixOrtho(ref projectionMatrix, 0.0f, 640.0f, 0.0f, 480.0f, float.MinValue, float.MaxValue);
+		shader.SetProjectionMatrix(driver, ref projectionMatrix);
 
 		shader.Bind(driver);
 
@@ -94,7 +74,7 @@ class Mesh
 		driver.DeviceContext.PSSetShaderResources(0, 1, &texture.TextureView);
 		driver.DeviceContext.PSSetSamplers(0, 1, &texture.SamplerState);
 
-		uint32 stride = 4 * sizeof(float);
+		uint32 stride = ComponentsPerVertex * sizeof(float);
 		uint32 offset = 0;
 		driver.DeviceContext.IASetVertexBuffers(0, 1, &_vertexBuffer, &stride, &offset);
 		driver.DeviceContext.IASetIndexBuffer(_indexBuffer, .R32_UINT, 0);

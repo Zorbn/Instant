@@ -5,6 +5,14 @@ namespace Instant;
 
 class Program
 {
+	/*
+	 * TODO:
+	 * General cleanup.
+	 * Make sure OpenGL and DX have parity.
+	 * Consider if driver should be passed around like it is now.
+	 * Better color blending system like in PxlIO.
+	 */
+
 	public static void Main()
 	{
 		Console.WriteLine("Hello, World!");
@@ -13,7 +21,7 @@ class Program
 		let window = SDL2.SDL.CreateWindow("Instant", .Centered, .Centered, 640, 480, Driver.PrepareWindowFlags() | .Shown | .Resizable);
 		let driver = scope Driver(window);
 
-		//var im = scope Immediate();
+		var im = scope Immediate(driver);
 
 		var wasResized = true;
 		var stopwatch = scope Stopwatch();
@@ -80,29 +88,27 @@ class Program
 			//im.RotatedPie(.(.(400.0f, 100.0f), 100.0f), Math.PI_f * 0.25f, .(0.0f, Math.PI_f * 1.75f), .(.Zero, .(2.0f, 2.0f)), .Blue, 16);
 			//im.RoundedQuad(.(.(100.0f, 100.0f), .(50.0f, 50.0f)), .One, 10.0f, .Red);
 
-			//im.RotatedRoundedQuad(.(.(100.0f, 100.0f), .(50.0f, 50.0f), .Zero, time), .(.Zero, .One * 2.0f), 10.0f, .Blue);
+			im.RotatedRoundedQuad(driver, .(.(100.0f, 100.0f), .(50.0f, 50.0f), .Zero, time), .(.Zero, .One * 2.0f), 10.0f, .Blue);
 
 			//im.RoundedQuad(.(.(300.0f, 100.0f), .(50.0f, 50.0f)), .One, 10.0f, .Red);
 
-			//im.RotatedQuad(.(.(300.0f, 100.0f), .(50.0f, 50.0f), .(25.0f, 25.0f), time), .One, .Red);
+			im.RotatedQuad(driver, .(.(300.0f, 100.0f), .(50.0f, 50.0f), .(25.0f, 25.0f), time), .One, .Red);
 
 			//im.RotatedQuad(.(.(100.0f, 100.0f), .(50.0f, 50.0f), .(0.0f, 0.0f), Math.PI_f * 0.25f), .One, .Blue);
 			//im.RotatedQuad(.(.(100.0f, 100.0f), .(50.0f, 50.0f), .(25.0f, 25.0f), Math.PI_f * 0.25f), .One, .Red);
 
-			//im.Flush(smallCanvas, testTexture);
+			driver.TestRendering(window, screenCanvas, testTexture);
+
+			im.Flush(driver, smallCanvas, testTexture);
 
 			//im.Quad(.(.Zero, .(screenCanvas.Width, screenCanvas.Height)), .One, .White);
 
 			//im.Flush(screenCanvas, smallCanvas.Texture);
 
-			driver.TestRendering(window, screenCanvas, testTexture);
 			driver.Present(window);
 		}
 
 		delete screenCanvas;
-
-		delete driver._mesh;
-		delete driver._shader;
 
 		SDL2.SDL.DestroyWindow(window);
 		SDL2.SDL.Quit();

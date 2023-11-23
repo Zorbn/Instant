@@ -20,14 +20,16 @@ class Shader
 		struct VS_Input {
 			float2 pos : POS;
 			float2 uv : TEX;
+			float4 color : COL;
 		};
 
 		struct VS_Output {
 			float4 pos : SV_POSITION;
 			float2 uv : TEXCOORD;
+			float4 color: COL;
 		};
 
-		Texture2D    mytexture : register(t0);
+		Texture2D mytexture : register(t0);
 		SamplerState mysampler : register(s0);
 
 		VS_Output vs_main(VS_Input input)
@@ -35,12 +37,14 @@ class Shader
 			VS_Output output;
 			output.pos = mul(projectionMatrix, float4(input.pos, 0.0f, 1.0f));
 			output.uv = input.uv;
+			output.color = input.color;
 			return output;
 		}
 
 		float4 ps_main(VS_Output input) : SV_Target
 		{
-			return mytexture.Sample(mysampler, input.uv);   
+			float4 textureColor = mytexture.Sample(mysampler, input.uv);
+			return textureColor * input.color;   
 		}
 		""";
 
@@ -62,7 +66,7 @@ class Shader
 		Runtime.Assert(result == 0);
 		pixelShaderBlob.Release();
 
-		D3D11_INPUT_ELEMENT_DESC[?] inputElementDescriptor = .(.(), .());
+		D3D11_INPUT_ELEMENT_DESC[?] inputElementDescriptor = .(.(), .(), .());
 
 		let posName = "POS";
 		inputElementDescriptor[0].SemanticName = (.)posName;
@@ -82,7 +86,16 @@ class Shader
 		inputElementDescriptor[1].InputSlotClass = .VERTEX_DATA;
 		inputElementDescriptor[1].InstanceDataStepRate = 0;
 
-		result = driver.Device.CreateInputLayout(&inputElementDescriptor[0], 2,
+		let colName = "COL";
+		inputElementDescriptor[2].SemanticName = (.)colName;
+		inputElementDescriptor[2].SemanticIndex = 0;
+		inputElementDescriptor[2].Format = .R32G32B32A32_FLOAT;
+		inputElementDescriptor[2].InputSlot = 0;
+		inputElementDescriptor[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+		inputElementDescriptor[2].InputSlotClass = .VERTEX_DATA;
+		inputElementDescriptor[2].InstanceDataStepRate = 0;
+
+		result = driver.Device.CreateInputLayout(&inputElementDescriptor[0], inputElementDescriptor.Count,
 			vertexShaderBlob.GetBufferPointer(), vertexShaderBlob.GetBufferSize(), &_inputLayout);
 		Runtime.Assert(result == 0);
 		vertexShaderBlob.Release();
