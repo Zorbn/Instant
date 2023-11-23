@@ -1,7 +1,7 @@
 using System;
 using OpenGL;
 
-namespace Instant;
+namespace Instant.OpenGL;
 
 static class GLHelper
 {

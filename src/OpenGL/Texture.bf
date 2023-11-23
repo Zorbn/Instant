@@ -1,5 +1,5 @@
-using OpenGL;
 using System;
+using OpenGL;
 
 namespace Instant;
 
@@ -11,7 +11,6 @@ class Texture
 		Smooth
 	}
 
-	const int PixelComponentCount = 4;
 	internal uint32 Texture { get; private set; } ~ GL.glDeleteTextures(1, &_);
 
 	public this(int width, int height, Filter filter, Span<uint8>? pixels)
@@ -35,9 +34,9 @@ class Texture
 
 		if (pixels != null)
 		{
-			FlipRows(width, height, pixels.Value);
+			Image.FlipRows(width, height, pixels.Value);
 			GL.glTexImage2D(.GL_TEXTURE_2D, 0, .GL_RGBA, (.)width, (.)height, 0, .GL_RGBA, .GL_UNSIGNED_BYTE, &pixels.Value[0]);
-			FlipRows(width, height, pixels.Value);
+			Image.FlipRows(width, height, pixels.Value);
 		}
 		else
 		{
@@ -50,29 +49,5 @@ class Texture
 		GL.glTexParameteri(.GL_TEXTURE_2D, .GL_TEXTURE_MIN_FILTER, (.)glMagFilter);
 	}
 
-	static void FlipRows(int width, int height, Span<uint8> pixels)
-	{
-		const int bufferSize = 2048;
-		uint8[bufferSize] buffer = ?; // Used as temporary storage when swapping chunks of rows.
-		let widthInComponents = width * PixelComponentCount;
 
-		for (var y = 0; y < height / 2; y++)
-		{
-			let otherY = height - 1 - y;
-			for (var xComponent = 0; xComponent < widthInComponents; xComponent += bufferSize)
-			{
-				let sourceOffset = xComponent + y * widthInComponents;
-				let destinationOffset = xComponent + otherY * widthInComponents;
-				let length = Math.Min(bufferSize, widthInComponents - xComponent);
-
-				Span<uint8> sourceSpan = pixels.Slice(sourceOffset, length);
-				Span<uint8> destinationSpan = pixels.Slice(destinationOffset, length);
-				Span<uint8> bufferSpan = .(&buffer[0], length);
-
-				destinationSpan.CopyTo(bufferSpan);
-				sourceSpan.CopyTo(destinationSpan);
-				bufferSpan.CopyTo(sourceSpan);
-			}
-		}
-	}
 }

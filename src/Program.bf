@@ -1,62 +1,17 @@
 using System;
-using SDL2;
-using OpenGL;
 using System.Diagnostics;
 
 namespace Instant;
 
 class Program
 {
-	class Image
-	{
-		public int Width;
-		public int Height;
-		public uint8[] Pixels ~ delete _;
-
-		public this(String path)
-		{
-			let loadedSurface = SDLImage.Load(path.CStr());
-
-			if (loadedSurface == null)
-			{
-				Runtime.FatalError(scope $"Failed to load image: {path}");
-			}
-
-			Width = loadedSurface.w;
-			Height = loadedSurface.h;
-			Pixels = new uint8[Width * Height * 4];
-
-			let result = SDL.ConvertPixels(loadedSurface.w, loadedSurface.h, loadedSurface.format.format,
-				loadedSurface.pixels, loadedSurface.pitch, SDL.PIXELFORMAT_ABGR8888, &Pixels[0], loadedSurface.w * 4);
-			SDL.FreeSurface(loadedSurface);
-
-			if (result < 0)
-			{
-				Runtime.FatalError(scope $"Failed to convert image: {path}");
-			}
-		}
-	}
-
 	public static void Main()
 	{
 		Console.WriteLine("Hello, World!");
 
-		SDL.Init(.Video);
-
-#if BF_PLATFORM_WASM
-		SDL.GL_SetAttribute(.GL_CONTEXT_MAJOR_VERSION, 3);
-		SDL.GL_SetAttribute(.GL_CONTEXT_MINOR_VERSION, 0);
-		SDL.GL_SetAttribute(.GL_CONTEXT_PROFILE_MASK, .GL_CONTEXT_PROFILE_ES);
-#else
-		SDL.GL_SetAttribute(.GL_CONTEXT_MAJOR_VERSION, 3);
-		SDL.GL_SetAttribute(.GL_CONTEXT_MINOR_VERSION, 2);
-		SDL.GL_SetAttribute(.GL_CONTEXT_PROFILE_MASK, .GL_CONTEXT_PROFILE_CORE);
-#endif
-
-		let window = SDL.CreateWindow("Instant", .Centered, .Centered, 640, 480, .OpenGL | .Shown | .Resizable);
-		SDL.GL_CreateContext(window);
-
-		GL.Init((procname) => SDL.GL_GetProcAddress(procname.ToScopeCStr!()));
+		SDL2.SDL.Init(.Video);
+		let window = SDL2.SDL.CreateWindow("Instant", .Centered, .Centered, 640, 480, Driver.PrepareWindowFlags() | .Shown | .Resizable);
+		let driver = scope Driver(window);
 
 		var im = scope Immediate();
 
@@ -89,8 +44,8 @@ class Program
 				wasResized = false;
 			}
 
-			SDL.Event event;
-			while (SDL.PollEvent(out event) != 0)
+			SDL2.SDL.Event event;
+			while (SDL2.SDL.PollEvent(out event) != 0)
 			{
 				switch (event.type)
 				{
@@ -133,12 +88,12 @@ class Program
 
 			im.Flush(screenCanvas, smallCanvas.Texture);
 
-			SDL.GL_SwapWindow(window);
+			driver.Present(window);
 		}
 
 		delete screenCanvas;
 
-		SDL.DestroyWindow(window);
-		SDL.Quit();
+		SDL2.SDL.DestroyWindow(window);
+		SDL2.SDL.Quit();
 	}
 }

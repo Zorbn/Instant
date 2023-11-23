@@ -1,0 +1,38 @@
+using SDL2;
+using OpenGL;
+
+namespace Instant;
+
+class Driver
+{
+	public this(SDL.Window* window)
+	{
+		SDL.GL_CreateContext(window);
+		GLInit();
+	}
+
+	public static SDL.WindowFlags PrepareWindowFlags()
+	{
+#if BF_PLATFORM_WASM
+		SDL.GL_SetAttribute(.GL_CONTEXT_MAJOR_VERSION, 3);
+		SDL.GL_SetAttribute(.GL_CONTEXT_MINOR_VERSION, 0);
+		SDL.GL_SetAttribute(.GL_CONTEXT_PROFILE_MASK, .GL_CONTEXT_PROFILE_ES);
+#else
+		SDL.GL_SetAttribute(.GL_CONTEXT_MAJOR_VERSION, 3);
+		SDL.GL_SetAttribute(.GL_CONTEXT_MINOR_VERSION, 2);
+		SDL.GL_SetAttribute(.GL_CONTEXT_PROFILE_MASK, .GL_CONTEXT_PROFILE_CORE);
+#endif
+
+		return .OpenGL;
+	}
+
+	public void Present(SDL.Window* window)
+	{
+		SDL.GL_SwapWindow(window);
+	}
+
+	static void GLInit()
+	{
+		GL.Init((procname) => SDL.GL_GetProcAddress(procname.ToScopeCStr!()));
+	}
+}
