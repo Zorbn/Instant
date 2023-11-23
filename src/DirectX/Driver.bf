@@ -23,20 +23,11 @@ class Driver
 	ID3D11Texture2D* _frameBuffer;
 	ID3D11RenderTargetView* _frameBufferView ~ _.Release();
 
-	ID3D11Buffer* _vertexBuffer ~ _.Release();
 
-	ID3D11BlendState1* _blendState;
+	ID3D11BlendState1* _blendState ~ _.Release();
 
-	Shader _shader ~ delete _;
-
-	float[?] vertexData = .(
-		-32f, 32f, 0.0f, 0.0f,
-		32f, -32f, 1.0f, 1.0f,
-		-32f, -32f, 0.0f, 1.0f,
-		-32f, 32f, 0.0f, 0.0f,
-		32f, 32f, 1.0f, 0.0f,
-		32f, -32f, 1.0f, 1.0f,
-	);
+	public Shader _shader;
+	public Mesh _mesh;
 
 	public this(SDL.Window* window)
 	{
@@ -44,6 +35,7 @@ class Driver
 		SwapChainInit(window);
 		TestRenderingInit();
 		_shader = new Shader(this);
+		_mesh = new Mesh(this);
 	}
 
 	public static SDL.WindowFlags PrepareWindowFlags()
@@ -135,18 +127,6 @@ class Driver
 		Runtime.Assert(result == 0);
 		_frameBuffer.Release();
 
-		/// Create vertex buffer.
-		D3D11_BUFFER_DESC vertexBufferDescriptor = .();
-		vertexBufferDescriptor.ByteWidth = vertexData.Count * sizeof(float);
-		vertexBufferDescriptor.Usage = .IMMUTABLE; // TODO?
-		vertexBufferDescriptor.BindFlags = (.)D3D11_BIND_FLAG.VERTEX_BUFFER;
-
-		D3D11_SUBRESOURCE_DATA vertexSubResourceData = .();
-		vertexSubResourceData.pSysMem = &vertexData[0];
-
-		result = _device.CreateBuffer(vertexBufferDescriptor, &vertexSubResourceData, &_vertexBuffer);
-		Runtime.Assert(result == 0);
-
 		/// Create blend state.
 		D3D11_BLEND_DESC1 blendStateDescriptor = .();
 		blendStateDescriptor.RenderTarget[0].BlendEnable = 1;
@@ -163,7 +143,7 @@ class Driver
 		_deviceContext.OMSetBlendState(_blendState, null, 0xffffffff);
 	}
 
-	public void TestRendering(SDL.Window* window, Texture texture)
+	public void TestRendering(SDL.Window* window, Canvas canvas, Texture texture)
 	{
 		int32 width = 0, height = 0;
 		SDL.GetWindowSize(window, out width, out height);
@@ -191,15 +171,7 @@ class Driver
 
 		_shader.Bind(this);
 
-		_deviceContext.PSSetShaderResources(0, 1, &texture.TextureView);
-		_deviceContext.PSSetSamplers(0, 1, &texture.SamplerState);
-
-		uint32 stride = 4 * sizeof(float);
-		uint32 offset = 0;
-		_deviceContext.IASetVertexBuffers(0, 1, &_vertexBuffer, &stride, &offset);
-
-		uint32 vertexCount = vertexData.Count * sizeof(float) / stride;
-		_deviceContext.Draw(vertexCount, 0);
+		_mesh.Draw(this, canvas, texture, _shader, ref projectionMatrix);
 	}
 
 	public void TestRenderingResize()

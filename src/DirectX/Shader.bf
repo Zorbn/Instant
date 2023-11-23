@@ -60,6 +60,7 @@ class Shader
 		ID3DBlob* pixelShaderBlob = DXHelper.CreateShaderBlob(Code, "Pixel Shader", "ps_main", "ps_5_0");
 		result = driver.Device.CreatePixelShader(pixelShaderBlob.GetBufferPointer(), pixelShaderBlob.GetBufferSize(), null, &_pixelShader);
 		Runtime.Assert(result == 0);
+		pixelShaderBlob.Release();
 
 		D3D11_INPUT_ELEMENT_DESC[?] inputElementDescriptor = .(.(), .());
 

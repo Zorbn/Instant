@@ -10,12 +10,12 @@ class Immediate
 
 	public this(int vertexCapacity = 1024, int indexCapacity = 1024)
 	{
-		_mesh = new .(vertexCapacity, indexCapacity);
+		//_mesh = new .(vertexCapacity, indexCapacity);
 	}
 
 	public void Draw(Canvas canvas, Texture texture)
 	{
-		_mesh.Draw(canvas, texture, _shader, ref _projectionMatrix);
+		//_mesh.Draw(canvas, texture, _shader, ref _projectionMatrix);
 	}
 
 	public void Clear()
@@ -32,7 +32,7 @@ class Immediate
 
 	public void Vertex(Vector2 position, Vector2 uv, Color color)
 	{
-		_mesh.EnsureCapacity(_mesh.VertexCount + 1, _mesh.IndexCount + 1);
+		//_mesh.EnsureCapacity(_mesh.VertexCount + 1, _mesh.IndexCount + 1);
 
 		RawIndex(_mesh.VertexCount);
 		RawVertex(position, uv, color);
@@ -40,7 +40,7 @@ class Immediate
 
 	public void RotatedQuad(RotatedRectangle destination, Rectangle source, Color color)
 	{
-		_mesh.EnsureCapacity(_mesh.VertexCount + 4, _mesh.IndexCount + 6);
+		//_mesh.EnsureCapacity(_mesh.VertexCount + 4, _mesh.IndexCount + 6);
 
 		RawIndex(_mesh.VertexCount);
 		RawIndex(_mesh.VertexCount + 1);
@@ -66,7 +66,7 @@ class Immediate
 	{
 		let triangleCount = stepCount - 2;
 
-		_mesh.EnsureCapacity(_mesh.VertexCount + (.)stepCount, _mesh.IndexCount + (.)triangleCount * 3);
+		//_mesh.EnsureCapacity(_mesh.VertexCount + (.)stepCount, _mesh.IndexCount + (.)triangleCount * 3);
 
 		let angleStep = Math.PI_f * 2.0f / stepCount;
 		let baseIndex = _mesh.VertexCount;
@@ -133,7 +133,7 @@ class Immediate
 		RotatedPie(.(topLeftPosition, radius), destination.Rotation, .(Math.PI_f * 0.5f, Math.PI_f), topLeftSource, color, stepCount);
 		let horizontalRectangleTopLeftVertex = (uint32)(_mesh.VertexCount - 1);
 
-		_mesh.EnsureCapacity(_mesh.VertexCount, _mesh.IndexCount + 12);
+		//_mesh.EnsureCapacity(_mesh.VertexCount, _mesh.IndexCount + 12);
 
 		// Connect existing vertices from the corners to fill in the center.
 		// More than the minimum number of triangles are used for this to prevent
@@ -192,7 +192,7 @@ class Immediate
 	// TODO: Maybe combine circular drawing logic?
 	public void RotatedPie(Circle circle, float rotation, Bounds bounds, Rectangle source, Color color, int stepCount = 16)
 	{
-		_mesh.EnsureCapacity(_mesh.VertexCount + (.)stepCount + 2, _mesh.IndexCount + (.)stepCount * 3);
+		//_mesh.EnsureCapacity(_mesh.VertexCount + (.)stepCount + 2, _mesh.IndexCount + (.)stepCount * 3);
 
 		let angleStep = bounds.Range / stepCount;
 		let baseIndex = _mesh.VertexCount;
