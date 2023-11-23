@@ -39,9 +39,12 @@ class Program
 
 			if (wasResized)
 			{
+				wasResized = false;
+
 				delete screenCanvas;
 				screenCanvas = new Canvas(window);
-				wasResized = false;
+
+				driver.TestRenderingResize();
 			}
 
 			SDL2.SDL.Event event;

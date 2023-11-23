@@ -1,3 +1,5 @@
+#if INSTANT_OPENGL
+
 using SDL2;
 using OpenGL;
 
@@ -36,3 +38,5 @@ class Driver
 		GL.Init((procname) => SDL.GL_GetProcAddress(procname.ToScopeCStr!()));
 	}
 }
+
+#endif

@@ -1,8 +1,7 @@
-#if INSTANT_OPENGL
+#if INSTANT_DIRECTX
 
 using System;
-using OpenGL;
-using Instant.OpenGL;
+using Instant.DirectX;
 
 namespace Instant;
 
@@ -58,12 +57,12 @@ class Shader
 	const internal uint32 InTextureCoordinates = 1;
 	const internal uint32 InColor = 2;
 
-	uint32 _shaderProgram ~ GL.glDeleteProgram(_);
+	/*uint32 _shaderProgram ~ GL.glDeleteProgram(_);*/
 	int32 _projectionMatrixUniform;
 
 	public this()
 	{
-		let vertexShader = GLHelper.CreateShader(VertexCode, .GL_VERTEX_SHADER);
+		/*let vertexShader = GLHelper.CreateShader(VertexCode, .GL_VERTEX_SHADER);
 		let fragmentShader = GLHelper.CreateShader(FragmentCode, .GL_FRAGMENT_SHADER);
 		_shaderProgram = GLHelper.CreateProgram(vertexShader, fragmentShader);
 
@@ -73,19 +72,19 @@ class Shader
 		GL.glBindAttribLocation(_shaderProgram, InPosition, "inPosition");
 		GL.glBindAttribLocation(_shaderProgram, InPosition, "inTextureCoordinates");
 		GL.glBindAttribLocation(_shaderProgram, InColor, "inColor");
-		_projectionMatrixUniform = GL.glGetUniformLocation(_shaderProgram, "projectionMatrix");
+		_projectionMatrixUniform = GL.glGetUniformLocation(_shaderProgram, "projectionMatrix");*/
 	}
 
 	// TODO: If shaders become a thing that users might want to create, they should be passed to Draw() explicitly rather
 	// than bound before hand.
 	public void Bind()
 	{
-		GL.glUseProgram(_shaderProgram);
+		/*GL.glUseProgram(_shaderProgram);*/
 	}
 
 	public void SetProjectionMatrix(ref float[16] matrix)
 	{
-		GL.glUniformMatrix4fv(_projectionMatrixUniform, 1, false, &matrix[0]);
+		/*GL.glUniformMatrix4fv(_projectionMatrixUniform, 1, false, &matrix[0]);*/
 	}
 }
 

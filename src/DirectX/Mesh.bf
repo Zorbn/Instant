@@ -1,7 +1,6 @@
-#if INSTANT_OPENGL
+#if INSTANT_DIRECTX
 
-using OpenGL;
-using Instant.OpenGL;
+using Instant.DirectX;
 using internal Instant.Canvas;
 using internal Instant.Texture;
 using internal Instant.Shader;
@@ -19,14 +18,14 @@ class Mesh
 
 	uint32 _vertexCapacity;
 
-	uint32 _vao ~ GL.glDeleteVertexArrays(1, &_);
+	/*uint32 _vao ~ GL.glDeleteVertexArrays(1, &_);
 	uint32 _vbo ~ GL.glDeleteBuffers(1, &_);
 
 #if BF_PLATFORM_WASM
 	// In WebGL, indices are a separate buffer.
 	// In CoreGL, they are passed directly through glDrawElements.
 	uint32 _indexBuffer ~ GL.glDeleteBuffers(1, &_);
-#endif
+#endif*/
 
 	public this(int vertexCapacity = 1024, int indexCapacity = 1024)
 	{
@@ -34,6 +33,7 @@ class Mesh
 		_vertexCapacity = (.)vertexCapacity;
 		Indices = new .[indexCapacity];
 
+		/*
 #if BF_PLATFORM_WASM
 		GL.glGenBuffers(1, &_indexBuffer);
 		GL.glBindBuffer(.GL_ELEMENT_ARRAY_BUFFER, _indexBuffer);
@@ -52,12 +52,12 @@ class Mesh
 		GL.glVertexAttribPointer(Shader.InTextureCoordinates, 2, .GL_FLOAT, false, sizeof(float) * Mesh.ComponentsPerVertex, (void*)(uint)(sizeof(float) * 2));
 		GL.glVertexAttribPointer(Shader.InColor, 4, .GL_FLOAT, false, sizeof(float) * Mesh.ComponentsPerVertex, (void*)(uint)(sizeof(float) * 4));
 
-		GL.glBufferData(.GL_ARRAY_BUFFER, (.)(_vertexCapacity * ComponentsPerVertex * sizeof(float)), null, .GL_STATIC_DRAW);
+		GL.glBufferData(.GL_ARRAY_BUFFER, (.)(_vertexCapacity * ComponentsPerVertex * sizeof(float)), null, .GL_STATIC_DRAW);*/
 	}
 
 	public void Draw(Canvas canvas, Texture texture, Shader shader, ref float[16] projectionMatrix)
 	{
-		if (IndexCount == 0) return;
+		/*if (IndexCount == 0) return;
 
 		GL.glEnable(.GL_BLEND);
 		GL.glBlendFunc(.GL_SRC_ALPHA, .GL_ONE_MINUS_SRC_ALPHA);
@@ -86,7 +86,7 @@ class Mesh
 		GL.glDrawElements(.GL_TRIANGLES, IndexCount, .GL_UNSIGNED_INT, &Indices[0]);
 #endif
 
-		GL.glDisable(.GL_BLEND);
+		GL.glDisable(.GL_BLEND);*/
 	}
 
 	public void Clear()
@@ -97,7 +97,7 @@ class Mesh
 
 	public void EnsureCapacity(uint32 vertexCapacity, int32 indexCapacity)
 	{
-		uint32 newVertexCapacity = _vertexCapacity;
+		/*uint32 newVertexCapacity = _vertexCapacity;
 		while (newVertexCapacity < vertexCapacity) newVertexCapacity *= 2;
 		if (newVertexCapacity != _vertexCapacity)
 		{
@@ -119,7 +119,7 @@ class Mesh
 			GL.glBindBuffer(.GL_ELEMENT_ARRAY_BUFFER, _indexBuffer);
 			GL.glBufferData(.GL_ELEMENT_ARRAY_BUFFER, (.)(Indices.Count * sizeof(uint32)), null, .GL_STATIC_DRAW);
 #endif
-		}
+		}*/
 	}
 }
 

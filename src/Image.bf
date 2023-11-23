@@ -5,7 +5,7 @@ namespace Instant;
 
 class Image
 {
-	const int PixelComponentCount = 4;
+	public const int PixelComponentCount = 4;
 
 	public int Width;
 	public int Height;

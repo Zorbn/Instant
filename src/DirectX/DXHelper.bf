@@ -1,16 +1,14 @@
-#if INSTANT_OPENGL
+#if INSTANT_DIRECTX
 
 using System;
-using OpenGL;
 
-namespace Instant.OpenGL;
+namespace Instant.DirectX;
 
-
-static class GLHelper
+static class DXHelper
 {
-	public static uint32 CreateShader(String code, GL.ShaderType shaderType)
+	public static uint32 CreateShader(String code/*, GL.ShaderType shaderType*/)
 	{
-		let shader = GL.glCreateShader(shaderType);
+		/*let shader = GL.glCreateShader(shaderType);
 		var vertexCodeCStr = code.CStr();
 		var vertexCodeLength = (int32)code.Length;
 		GL.glShaderSource(shader, 1, &vertexCodeCStr, &vertexCodeLength);
@@ -28,12 +26,14 @@ static class GLHelper
 			Runtime.FatalError(scope $"Shader compilation error: {infoLog}");
 		}
 
-		return shader;
+		return shader;*/
+
+		return 0;
 	}
 
 	public static uint32 CreateProgram(uint32 vertexShader, uint32 fragmentShader)
 	{
-		let program = GL.glCreateProgram();
+		/*let program = GL.glCreateProgram();
 		GL.glAttachShader(program, vertexShader);
 		GL.glAttachShader(program, fragmentShader);
 		GL.glLinkProgram(program);
@@ -50,7 +50,9 @@ static class GLHelper
 			Runtime.FatalError(scope $"Program linking error: {infoLog}");
 		}
 
-		return program;
+		return program;*/
+
+		return 0;
 	}
 }
 
