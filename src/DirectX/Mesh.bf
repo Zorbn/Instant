@@ -19,13 +19,7 @@ class Mesh
 	uint32 _vertexCapacity;
 
 	/*uint32 _vao ~ GL.glDeleteVertexArrays(1, &_);
-	uint32 _vbo ~ GL.glDeleteBuffers(1, &_);
-
-#if BF_PLATFORM_WASM
-	// In WebGL, indices are a separate buffer.
-	// In CoreGL, they are passed directly through glDrawElements.
-	uint32 _indexBuffer ~ GL.glDeleteBuffers(1, &_);
-#endif*/
+	uint32 _vbo ~ GL.glDeleteBuffers(1, &_);*/
 
 	public this(int vertexCapacity = 1024, int indexCapacity = 1024)
 	{
@@ -34,12 +28,6 @@ class Mesh
 		Indices = new .[indexCapacity];
 
 		/*
-#if BF_PLATFORM_WASM
-		GL.glGenBuffers(1, &_indexBuffer);
-		GL.glBindBuffer(.GL_ELEMENT_ARRAY_BUFFER, _indexBuffer);
-		GL.glBufferData(.GL_ELEMENT_ARRAY_BUFFER, (.)(Indices.Count * sizeof(uint32)), null, .GL_STATIC_DRAW);
-#endif
-
 		GL.glGenVertexArrays(1, &_vao);
 		GL.glGenBuffers(1, &_vbo);
 		GL.glBindVertexArray(_vao);
@@ -55,6 +43,7 @@ class Mesh
 		GL.glBufferData(.GL_ARRAY_BUFFER, (.)(_vertexCapacity * ComponentsPerVertex * sizeof(float)), null, .GL_STATIC_DRAW);*/
 	}
 
+	// TODO: Shader shouldn't be passed in here, neither should projectionMatrix.
 	public void Draw(Canvas canvas, Texture texture, Shader shader, ref float[16] projectionMatrix)
 	{
 		/*if (IndexCount == 0) return;
@@ -71,20 +60,9 @@ class Mesh
 		GL.glBindBuffer(.GL_ARRAY_BUFFER, _vbo);
 		GL.glBufferSubData(.GL_ARRAY_BUFFER, 0, (.)(VertexCount * ComponentsPerVertex * sizeof(float)), &VertexComponents[0]);
 
-#if BF_PLATFORM_WASM
-		GL.glBindBuffer(.GL_ELEMENT_ARRAY_BUFFER, _indexBuffer);
-		GL.glBufferSubData(.GL_ELEMENT_ARRAY_BUFFER, 0, (.)(IndexCount * sizeof(uint32)), &Indices[0]);
-#endif
-
 		shader.Bind();
 		GL.glBindTexture(.GL_TEXTURE_2D, texture.Texture);
 		GL.glBindVertexArray(_vao);
-
-#if BF_PLATFORM_WASM
-		GL.glDrawElements(.GL_TRIANGLES, IndexCount, .GL_UNSIGNED_INT, (void*)0);
-#else
-		GL.glDrawElements(.GL_TRIANGLES, IndexCount, .GL_UNSIGNED_INT, &Indices[0]);
-#endif
 
 		GL.glDisable(.GL_BLEND);*/
 	}

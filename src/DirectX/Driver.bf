@@ -6,6 +6,7 @@ using Win32.Graphics.Direct3D;
 using Win32.Graphics.Direct3D.Fxc;
 using Win32.Graphics.Direct3D11;
 using Win32.Graphics.Dxgi;
+using internal Instant.Texture; // TODO: This shouldn't be necessary.
 
 namespace Instant;
 
@@ -22,11 +23,9 @@ class Driver
 	ID3D11Texture2D* _frameBuffer;
 	ID3D11RenderTargetView* _frameBufferView ~ _.Release();
 
-	ID3D11Texture2D* _texture ~ _.Release();
-	ID3D11ShaderResourceView* _textureView ~ _.Release();
-	ID3D11SamplerState* _samplerState ~ _.Release();
-
 	ID3D11Buffer* _vertexBuffer ~ _.Release();
+
+	ID3D11BlendState1* _blendState;
 
 	Shader _shader ~ delete _;
 
@@ -54,7 +53,6 @@ class Driver
 
 	public void Present(SDL.Window* window)
 	{
-		TestRendering(window);
 		_swapChain.Present(1, 0);
 	}
 
@@ -149,40 +147,23 @@ class Driver
 		result = _device.CreateBuffer(vertexBufferDescriptor, &vertexSubResourceData, &_vertexBuffer);
 		Runtime.Assert(result == 0);
 
-		/// Create sampler state.
-		D3D11_SAMPLER_DESC samplerDescriptor = .();
-		samplerDescriptor.Filter = .MIN_MAG_MIP_POINT;
-		samplerDescriptor.AddressU = .WRAP;
-		samplerDescriptor.AddressV = .WRAP;
-		samplerDescriptor.AddressW = .WRAP;
-		samplerDescriptor.ComparisonFunc = .NEVER;
+		/// Create blend state.
+		D3D11_BLEND_DESC1 blendStateDescriptor = .();
+		blendStateDescriptor.RenderTarget[0].BlendEnable = 1;
+		blendStateDescriptor.RenderTarget[0].SrcBlend = .SRC_ALPHA;
+		blendStateDescriptor.RenderTarget[0].DestBlend = .INV_SRC_ALPHA;
+		blendStateDescriptor.RenderTarget[0].BlendOp = .ADD;
+		blendStateDescriptor.RenderTarget[0].SrcBlendAlpha = .SRC_ALPHA;
+		blendStateDescriptor.RenderTarget[0].DestBlendAlpha = .DEST_ALPHA;
+		blendStateDescriptor.RenderTarget[0].BlendOpAlpha = .ADD;
+		blendStateDescriptor.RenderTarget[0].RenderTargetWriteMask = (.)D3D11_COLOR_WRITE_ENABLE.ALL;
+		result = _device.CreateBlendState1(blendStateDescriptor, &_blendState);
+		Runtime.Assert(result == 0);
 
-		_device.CreateSamplerState(samplerDescriptor, &_samplerState);
-
-		/// Load image.
-		let image = scope Instant.Image("Test.png");
-
-		/// Create texture.
-		D3D11_TEXTURE2D_DESC textureDescriptor = .();
-		textureDescriptor.Width = (.)image.Width;
-		textureDescriptor.Height = (.)image.Height;
-		textureDescriptor.MipLevels = 1;
-		textureDescriptor.ArraySize = 1;
-		textureDescriptor.Format = .R8G8B8A8_UNORM;
-		textureDescriptor.SampleDesc.Count = 1;
-		textureDescriptor.Usage = .IMMUTABLE;
-		textureDescriptor.BindFlags = .SHADER_RESOURCE;
-
-		D3D11_SUBRESOURCE_DATA textureSubResourceData = .();
-		textureSubResourceData.pSysMem = &image.Pixels[0];
-		textureSubResourceData.SysMemPitch = (.)image.Width * Instant.Image.PixelComponentCount;
-
-		_device.CreateTexture2D(textureDescriptor, &textureSubResourceData, &_texture);
-
-		_device.CreateShaderResourceView(ref *_texture, null, &_textureView);
+		_deviceContext.OMSetBlendState(_blendState, null, 0xffffffff);
 	}
 
-	public void TestRendering(SDL.Window* window)
+	public void TestRendering(SDL.Window* window, Texture texture)
 	{
 		int32 width = 0, height = 0;
 		SDL.GetWindowSize(window, out width, out height);
@@ -210,8 +191,8 @@ class Driver
 
 		_shader.Bind(this);
 
-		_deviceContext.PSSetShaderResources(0, 1, &_textureView);
-		_deviceContext.PSSetSamplers(0, 1, &_samplerState);
+		_deviceContext.PSSetShaderResources(0, 1, &texture.TextureView);
+		_deviceContext.PSSetSamplers(0, 1, &texture.SamplerState);
 
 		uint32 stride = 4 * sizeof(float);
 		uint32 offset = 0;

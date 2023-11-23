@@ -11,6 +11,9 @@ class Driver
 	{
 		SDL.GL_CreateContext(window);
 		GLInit();
+
+		GL.glEnable(.GL_BLEND);
+		GL.glBlendFunc(.GL_SRC_ALPHA, .GL_ONE_MINUS_SRC_ALPHA);
 	}
 
 	public static SDL.WindowFlags PrepareWindowFlags()

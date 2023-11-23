@@ -1,6 +1,8 @@
 #if INSTANT_DIRECTX
 
 using System;
+using Win32.Graphics.Direct3D11;
+using internal Instant.Driver;
 
 namespace Instant;
 
@@ -12,40 +14,50 @@ class Texture
 		Smooth
 	}
 
-	/*internal uint32 Texture { get; private set; } ~ GL.glDeleteTextures(1, &_);*/
+	internal ref ID3D11ShaderResourceView* TextureView { get => ref _textureView; }
+	internal ref ID3D11SamplerState* SamplerState { get => ref _samplerState; }
 
-	public this(int width, int height, Filter filter, Span<uint8>? pixels)
+	ID3D11Texture2D* _texture ~ _.Release();
+	ID3D11ShaderResourceView* _textureView ~ _.Release();
+	ID3D11SamplerState* _samplerState ~ _.Release();
+
+	public this(Driver driver, int width, int height, Filter filter, Span<uint8>? pixels)
 	{
-		/*uint32 texture = 0;
-		GL.glGenTextures(1, &texture);
-		GL.glBindTexture(.GL_TEXTURE_2D, texture);
-		Texture = texture;
-
-		GL.TextureMinFilter glMinFilter;
-		GL.TextureMagFilter glMagFilter;
+		D3D11_FILTER dxFilter;
 		switch (filter)
 		{
 		case .Smooth:
-			glMinFilter = .GL_LINEAR;
-			glMagFilter = .GL_LINEAR;
+			dxFilter = .MIN_MAG_MIP_LINEAR;
 		default:
-			glMinFilter = .GL_NEAREST;
-			glMagFilter = .GL_NEAREST;
+			dxFilter = .MIN_MAG_MIP_POINT;
 		}
 
-		if (pixels != null)
-		{
-			GL.glTexImage2D(.GL_TEXTURE_2D, 0, .GL_RGBA, (.)width, (.)height, 0, .GL_RGBA, .GL_UNSIGNED_BYTE, &pixels.Value[0]);
-		}
-		else
-		{
-			GL.glTexImage2D(.GL_TEXTURE_2D, 0, .GL_RGBA, (.)width, (.)height, 0, .GL_RGBA, .GL_UNSIGNED_BYTE, null);
-		}
 
-		GL.glTexParameteri(.GL_TEXTURE_2D, .GL_TEXTURE_WRAP_S, (.)GL.TextureWrapMode.GL_REPEAT);
-		GL.glTexParameteri(.GL_TEXTURE_2D, .GL_TEXTURE_WRAP_T, (.)GL.TextureWrapMode.GL_REPEAT);
-		GL.glTexParameteri(.GL_TEXTURE_2D, .GL_TEXTURE_MAG_FILTER, (.)glMinFilter);
-		GL.glTexParameteri(.GL_TEXTURE_2D, .GL_TEXTURE_MIN_FILTER, (.)glMagFilter);*/
+		D3D11_SAMPLER_DESC samplerDescriptor = .();
+		samplerDescriptor.Filter = dxFilter;
+		samplerDescriptor.AddressU = .WRAP;
+		samplerDescriptor.AddressV = .WRAP;
+		samplerDescriptor.AddressW = .WRAP;
+		samplerDescriptor.ComparisonFunc = .NEVER;
+
+		driver.Device.CreateSamplerState(samplerDescriptor, &_samplerState);
+
+		D3D11_TEXTURE2D_DESC textureDescriptor = .();
+		textureDescriptor.Width = (.)width;
+		textureDescriptor.Height = (.)height;
+		textureDescriptor.MipLevels = 1;
+		textureDescriptor.ArraySize = 1;
+		textureDescriptor.Format = .R8G8B8A8_UNORM;
+		textureDescriptor.SampleDesc.Count = 1;
+		textureDescriptor.Usage = .IMMUTABLE;
+		textureDescriptor.BindFlags = .SHADER_RESOURCE;
+
+		D3D11_SUBRESOURCE_DATA textureSubResourceData = .();
+		textureSubResourceData.pSysMem = pixels != null ? &pixels.Value[0] : null;
+		textureSubResourceData.SysMemPitch = (.)width * Instant.Image.PixelComponentCount;
+
+		driver.Device.CreateTexture2D(textureDescriptor, &textureSubResourceData, &_texture);
+		driver.Device.CreateShaderResourceView(ref *_texture, null, &_textureView);
 	}
 
 

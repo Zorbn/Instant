@@ -24,7 +24,7 @@ class Program
 		var smallCanvas = scope Canvas(640, 480);
 
 		var testImage = scope Image("Test.png");
-		var testTexture = scope Texture(testImage.Width, testImage.Height, .Pixelated, .(testImage.Pixels));
+		var testTexture = scope Texture(driver, testImage.Width, testImage.Height, .Pixelated, .(testImage.Pixels));
 		//var blankTexture = scope Texture(1, 1, .Pixelated, scope .(.(255, 255, 255, 255)));
 		//var checkerTexture = scope Texture(2, 2, .Pixelated,
 		//	.(scope .(255, 255, 255, 125, 0, 0, 0, 125, 0, 0, 0, 125, 255, 255, 255, 125)));
@@ -91,6 +91,7 @@ class Program
 
 			im.Flush(screenCanvas, smallCanvas.Texture);
 
+			driver.TestRendering(window, testTexture);
 			driver.Present(window);
 		}
 

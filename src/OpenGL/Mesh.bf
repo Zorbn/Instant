@@ -60,9 +60,6 @@ class Mesh
 	{
 		if (IndexCount == 0) return;
 
-		GL.glEnable(.GL_BLEND);
-		GL.glBlendFunc(.GL_SRC_ALPHA, .GL_ONE_MINUS_SRC_ALPHA);
-
 		GL.glBindFramebuffer(.GL_FRAMEBUFFER, canvas.Framebuffer);
 		GL.glViewport(0, 0, (.)canvas.Width, (.)canvas.Height);
 
@@ -86,8 +83,6 @@ class Mesh
 #else
 		GL.glDrawElements(.GL_TRIANGLES, IndexCount, .GL_UNSIGNED_INT, &Indices[0]);
 #endif
-
-		GL.glDisable(.GL_BLEND);
 	}
 
 	public void Clear()
