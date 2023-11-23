@@ -17,7 +17,7 @@ class Driver
 
 	IDXGISwapChain1* d3d11SwapChain ~ _.Release();
 
-	ID3D11Texture2D* d3d11FrameBuffer; // ~ _.Release();
+	ID3D11Texture2D* d3d11FrameBuffer;
 	ID3D11RenderTargetView* d3d11FrameBufferView ~ _.Release();
 
 	ID3D11InputLayout* inputLayout ~ _.Release();
@@ -31,13 +31,15 @@ class Driver
 
 	ID3D11Buffer* vertexBuffer ~ _.Release();
 
+	ID3D11Buffer* projectionMatrixBuffer ~ _.Release();
+
 	float[?] vertexData = .(
-		-0.5f, 0.5f, 0.0f, 0.0f,
-		0.5f, -0.5f, 1.0f, 1.0f,
-		-0.5f, -0.5f, 0.0f, 1.0f,
-		-0.5f, 0.5f, 0.0f, 0.0f,
-		0.5f, 0.5f, 1.0f, 0.0f,
-		0.5f, -0.5f, 1.0f, 1.0f,
+		-32f, 32f, 0.0f, 0.0f,
+		32f, -32f, 1.0f, 1.0f,
+		-32f, -32f, 0.0f, 1.0f,
+		-32f, 32f, 0.0f, 0.0f,
+		32f, 32f, 1.0f, 0.0f,
+		32f, -32f, 1.0f, 1.0f,
 	);
 
 	public this(SDL.Window* window)
@@ -129,6 +131,11 @@ class Driver
 
 	const String Shader =
 		"""
+		cbuffer constants : register(b0)
+		{
+			float4x4 projectionMatrix;
+		};
+
 		struct VS_Input {
 			float2 pos : POS;
 			float2 uv : TEX;
@@ -145,7 +152,7 @@ class Driver
 		VS_Output vs_main(VS_Input input)
 		{
 			VS_Output output;
-			output.pos = float4(input.pos, 0.0f, 1.0f);
+			output.pos = mul(projectionMatrix, float4(input.pos, 0.0f, 1.0f));
 			output.uv = input.uv;
 			return output;
 		}
@@ -262,15 +269,34 @@ class Driver
 		d3d11Device.CreateTexture2D(textureDescriptor, &textureSubResourceData, &texture);
 
 		d3d11Device.CreateShaderResourceView(ref *texture, null, &textureView);
+
+		/// Create constant buffer.
+		D3D11_BUFFER_DESC projectionMatrixBufferDescriptor = .();
+		// Aligned to 16 bytes.
+		projectionMatrixBufferDescriptor.ByteWidth = ((16 * sizeof(float)) + 0xf) & 0xfffffff0;
+		projectionMatrixBufferDescriptor.Usage = .DYNAMIC;
+		projectionMatrixBufferDescriptor.BindFlags = (.)D3D11_BIND_FLAG.CONSTANT_BUFFER;
+		projectionMatrixBufferDescriptor.CPUAccessFlags = (.)D3D11_CPU_ACCESS_FLAG.WRITE;
+		result = d3d11Device.CreateBuffer(projectionMatrixBufferDescriptor, null, &projectionMatrixBuffer);
+		Runtime.Assert(result == 0);
 	}
 
 	public void TestRendering(SDL.Window* window)
 	{
+		int32 width = 0, height = 0;
+		SDL.GetWindowSize(window, out width, out height);
+
+		/// Update constant buffer.
+		D3D11_MAPPED_SUBRESOURCE mappedSubResource = ?;
+		d3d11DeviceContext.Map(ref *projectionMatrixBuffer, 0, .WRITE_DISCARD, 0, & mappedSubResource);
+		float[16]* projectionMatrix = (float[16]*)mappedSubResource.pData;
+		Matrix.MatrixOrtho(ref *projectionMatrix, 0.0f, width, 0.0f, height, float.MinValue, float.MaxValue);
+		d3d11DeviceContext.Unmap(ref *projectionMatrixBuffer, 0);
+
+		/// Draw.
 		float[4] backgroundColor = .(0.1f, 0.2f, 0.6f, 1.0f);
 		d3d11DeviceContext.ClearRenderTargetView(ref *d3d11FrameBufferView, backgroundColor[0]);
 
-		int32 width = 0, height = 0;
-		SDL.GetWindowSize(window, out width, out height);
 		D3D11_VIEWPORT viewport = .();
 		viewport.TopLeftX = 0;
 		viewport.TopLeftY = 0;
@@ -287,6 +313,8 @@ class Driver
 
 		d3d11DeviceContext.VSSetShader(vertexShader, null, 0);
 		d3d11DeviceContext.PSSetShader(pixelShader, null, 0);
+
+		d3d11DeviceContext.VSSetConstantBuffers(0, 1, &projectionMatrixBuffer);
 
 		d3d11DeviceContext.PSSetShaderResources(0, 1, &textureView);
 		d3d11DeviceContext.PSSetSamplers(0, 1, &samplerState);

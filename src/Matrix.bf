@@ -26,4 +26,27 @@ static class Matrix
 		destination[14] = (farZ + nearZ) * inverseDepth;
 		destination[15] = 1.0f;
 	}
+
+	public static void MatrixIdentity(ref float[16] destination)
+	{
+		destination[0] = 1.0f;
+		destination[1] = 0.0f;
+		destination[2] = 0.0f;
+		destination[3] = 0.0f;
+
+		destination[4] = 0.0f;
+		destination[5] = 1.0f;
+		destination[6] = 0.0f;
+		destination[7] = 0.0f;
+
+		destination[8] = 0.0f;
+		destination[9] = 0.0f;
+		destination[10] = 1.0f;
+		destination[11] = 0.0f;
+
+		destination[12] = 0.0f;
+		destination[13] = 0.0f;
+		destination[14] = 0.0f;
+		destination[15] = 1.0f;
+	}
 }
