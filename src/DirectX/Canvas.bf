@@ -30,7 +30,7 @@ class Canvas
 		renderTargetViewDescriptor.ViewDimension = .TEXTURE2D;
 		renderTargetViewDescriptor.Texture2D.MipSlice = 0;
 
-		let result = driver.Device.CreateRenderTargetView(ref *Texture.Texture, &renderTargetViewDescriptor, &_renderTargetView);
+		let result = driver.Device.CreateRenderTargetView(ref *Texture.DXTexture, &renderTargetViewDescriptor, &_renderTargetView);
 		Runtime.Assert(result == 0);
 	}
 
