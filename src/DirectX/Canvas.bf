@@ -2,7 +2,9 @@
 
 using SDL2;
 using System;
+using Win32.Graphics.Direct3D11;
 using internal Instant.Texture;
+using internal Instant.Driver;
 
 namespace Instant;
 
@@ -11,48 +13,51 @@ class Canvas
 	public int Width { get; private set; }
 	public int Height { get; private set; }
 
-	/*internal uint32 Framebuffer { get; private set; } ~ GL.glDeleteFramebuffers(1, &_);*/
 	public Texture Texture { get; private set; } ~ delete _;
+	internal ref ID3D11RenderTargetView* RenderTargetView { get => ref _renderTargetView; }
 
-	public this(int width, int height)
+	ID3D11RenderTargetView* _renderTargetView ~ _.Release();
+
+	public this(Driver driver, int width, int height)
 	{
-		/*Width = width;
+		Width = width;
 		Height = height;
 
-		uint32 framebuffer = 0;
-		GL.glGenFramebuffers(1, &framebuffer);
-		Framebuffer = framebuffer;
-		Console.WriteLine(Framebuffer);
+		Texture = new .(driver, width, height, .Pixelated, null);
 
-		Texture = new Texture(width, height, .Pixelated, null);
+		D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDescriptor = .();
+		renderTargetViewDescriptor.Format = .B8G8R8A8_UNORM;
+		renderTargetViewDescriptor.ViewDimension = .TEXTURE2D;
+		renderTargetViewDescriptor.Texture2D.MipSlice = 0;
 
-		GL.glBindFramebuffer(.GL_FRAMEBUFFER, Framebuffer);
-		GL.glFramebufferTexture2D(.GL_FRAMEBUFFER, .GL_COLOR_ATTACHMENT0, .GL_TEXTURE_2D, Texture.Texture, 0);
-		var drawBufferMode = GL.DrawBufferMode.GL_COLOR_ATTACHMENT0;
-		GL.glDrawBuffers(1, &drawBufferMode);
-
-		// TODO: Make an actual error message here.
-		if (GL.glCheckFramebufferStatus(.GL_FRAMEBUFFER) != .GL_FRAMEBUFFER_COMPLETE) Console.WriteLine("Failed!");*/
+		let result = driver.Device.CreateRenderTargetView(ref *Texture.Texture, &renderTargetViewDescriptor, &_renderTargetView);
+		Runtime.Assert(result == 0);
 	}
 
-	public this(SDL.Window* window)
+	public this(Driver driver, SDL.Window* window)
 	{
-		/*Framebuffer = 0;
-
 		int32 width, height;
 		SDL.GL_GetDrawableSize(window, out width, out height);
 
 		Width = width;
-		Height = height;*/
+		Height = height;
+
+		var result = driver.SwapChain.ResizeBuffers(0, 0, 0, .UNKNOWN, 0);
+		Runtime.Assert(result == 0);
+
+		ID3D11Texture2D* frameBuffer = ?;
+		result = driver.SwapChain.GetBuffer(0, ID3D11Texture2D.IID, (void**)&frameBuffer);
+		Runtime.Assert(result == 0);
+
+		result = driver.Device.CreateRenderTargetView(ref *frameBuffer, null, &_renderTargetView);
+		Runtime.Assert(result == 0);
+		frameBuffer.Release();
 	}
 
-	public void Clear(Color color)
+	public void Clear(Driver driver, Color color)
 	{
-		/*GL.glBindFramebuffer(.GL_FRAMEBUFFER, Framebuffer);
-		GL.glViewport(0, 0, (.)Width, (.)Height);
-
-		GL.glClearColor(color.R, color.G, color.B, color.A);
-		GL.glClear(.GL_COLOR_BUFFER_BIT);*/
+		float[4] backgroundColor = .(color.R, color.G, color.B, color.A);
+		driver.DeviceContext.ClearRenderTargetView(ref *_renderTargetView, backgroundColor[0]);
 	}
 }
 

@@ -43,7 +43,7 @@ class Shader
 
 		float4 ps_main(VS_Output input) : SV_Target
 		{
-			float4 textureColor = mytexture.Sample(mysampler, input.uv);
+			float4 textureColor = mytexture.Sample(mysampler, float2(input.uv.x, 1.0 - input.uv.y));
 			return textureColor * input.color;   
 		}
 		""";

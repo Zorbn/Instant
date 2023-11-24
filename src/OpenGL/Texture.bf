@@ -13,6 +13,7 @@ class Texture
 		Smooth
 	}
 
+	// TODO: Rename to GLTexture.
 	internal uint32 Texture { get; private set; } ~ GL.glDeleteTextures(1, &_);
 
 	public this(int width, int height, Filter filter, Span<uint8>? pixels)

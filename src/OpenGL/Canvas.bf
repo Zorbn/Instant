@@ -25,7 +25,7 @@ class Canvas
 		Framebuffer = framebuffer;
 		Console.WriteLine(Framebuffer);
 
-		Texture = new Texture(width, height, .Pixelated, null);
+		Texture = new .(width, height, .Pixelated, null);
 
 		GL.glBindFramebuffer(.GL_FRAMEBUFFER, Framebuffer);
 		GL.glFramebufferTexture2D(.GL_FRAMEBUFFER, .GL_COLOR_ATTACHMENT0, .GL_TEXTURE_2D, Texture.Texture, 0);

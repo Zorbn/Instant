@@ -14,6 +14,7 @@ class Texture
 		Smooth
 	}
 
+	internal ref ID3D11Texture2D* DXTexture { get => ref _texture; }
 	internal ref ID3D11ShaderResourceView* TextureView { get => ref _textureView; }
 	internal ref ID3D11SamplerState* SamplerState { get => ref _samplerState; }
 
@@ -49,15 +50,35 @@ class Texture
 		textureDescriptor.ArraySize = 1;
 		textureDescriptor.Format = .R8G8B8A8_UNORM;
 		textureDescriptor.SampleDesc.Count = 1;
-		textureDescriptor.Usage = .IMMUTABLE;
-		textureDescriptor.BindFlags = .SHADER_RESOURCE;
+		textureDescriptor.Usage = .DEFAULT;
+		textureDescriptor.BindFlags = .RENDER_TARGET | .SHADER_RESOURCE;
 
+		D3D11_SUBRESOURCE_DATA* textureSubResourceDataPointer = null;
 		D3D11_SUBRESOURCE_DATA textureSubResourceData = .();
-		textureSubResourceData.pSysMem = pixels != null ? &pixels.Value[0] : null;
-		textureSubResourceData.SysMemPitch = (.)width * Instant.Image.PixelComponentCount;
+		if (pixels != null)
+		{
+			textureDescriptor.Usage = .IMMUTABLE;
+			textureDescriptor.BindFlags = .SHADER_RESOURCE;
 
-		driver.Device.CreateTexture2D(textureDescriptor, &textureSubResourceData, &_texture);
-		driver.Device.CreateShaderResourceView(ref *_texture, null, &_textureView);
+			textureSubResourceData.pSysMem = &pixels.Value[0];
+			textureSubResourceData.SysMemPitch = (.)width * Instant.Image.PixelComponentCount;
+			textureSubResourceDataPointer = &textureSubResourceData;
+		}
+		else
+		{
+			// TODO
+			textureDescriptor.Format = .B8G8R8A8_UNORM;
+		}
+
+		driver.Device.CreateTexture2D(textureDescriptor, textureSubResourceDataPointer, &_texture);
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourcesViewDescriptor = .();
+		shaderResourcesViewDescriptor.Format = textureDescriptor.Format;
+		shaderResourcesViewDescriptor.ViewDimension = .D3D11_SRV_DIMENSION_TEXTURE2D;
+		shaderResourcesViewDescriptor.Texture2D.MostDetailedMip = 0;
+		shaderResourcesViewDescriptor.Texture2D.MipLevels = 1;
+
+		driver.Device.CreateShaderResourceView(ref *_texture, &shaderResourcesViewDescriptor, &_textureView);
 	}
 
 

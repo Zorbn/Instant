@@ -6,22 +6,19 @@ using Win32.Graphics.Direct3D;
 using Win32.Graphics.Direct3D.Fxc;
 using Win32.Graphics.Direct3D11;
 using Win32.Graphics.Dxgi;
-using internal Instant.Texture; // TODO: This shouldn't be necessary.
 
 namespace Instant;
 
 class Driver
 {
-	internal ID3D11Device1* Device { get => _device; };
-	internal ID3D11DeviceContext1* DeviceContext { get => _deviceContext; };
+	internal ID3D11Device1* Device { get => _device; }
+	internal ID3D11DeviceContext1* DeviceContext { get => _deviceContext; }
+	internal IDXGISwapChain1* SwapChain { get => _swapChain; }
 
 	ID3D11Device1* _device ~ _.Release();
 	ID3D11DeviceContext1* _deviceContext ~ _.Release();
 
 	IDXGISwapChain1* _swapChain ~ _.Release();
-
-	ID3D11Texture2D* _frameBuffer;
-	ID3D11RenderTargetView* _frameBufferView ~ _.Release();
 
 	ID3D11RasterizerState* _rasterizerState ~ _.Release();
 	ID3D11BlendState1* _blendState ~ _.Release();
@@ -114,18 +111,11 @@ class Driver
 
 	void TestRenderingInit()
 	{
-		/// Render target.
-		var result = _swapChain.GetBuffer(0, ID3D11Texture2D.IID, (void**)&_frameBuffer);
-		Runtime.Assert(result == 0);
-
-		result = _device.CreateRenderTargetView(ref *_frameBuffer, null, &_frameBufferView);
-		Runtime.Assert(result == 0);
-		_frameBuffer.Release();
-
 		/// Create rasterizer state.
 		D3D11_RASTERIZER_DESC rasterizerDescriptor = .();
 		rasterizerDescriptor.FillMode = .SOLID;
 		rasterizerDescriptor.CullMode = .NONE;
+		rasterizerDescriptor.FrontCounterClockwise = 1;
 
 		_device.CreateRasterizerState(rasterizerDescriptor, &_rasterizerState);
 		_deviceContext.RSSetState(_rasterizerState);
@@ -140,50 +130,12 @@ class Driver
 		blendStateDescriptor.RenderTarget[0].DestBlendAlpha = .DEST_ALPHA;
 		blendStateDescriptor.RenderTarget[0].BlendOpAlpha = .ADD;
 		blendStateDescriptor.RenderTarget[0].RenderTargetWriteMask = (.)D3D11_COLOR_WRITE_ENABLE.ALL;
-		result = _device.CreateBlendState1(blendStateDescriptor, &_blendState);
+		let result = _device.CreateBlendState1(blendStateDescriptor, &_blendState);
 		Runtime.Assert(result == 0);
 
 		_deviceContext.OMSetBlendState(_blendState, null, 0xffffffff);
-	}
-
-	public void TestRendering(SDL.Window* window, Canvas canvas, Texture texture)
-	{
-		int32 width = 0, height = 0;
-		SDL.GetWindowSize(window, out width, out height);
-
-		/// Draw.
-		float[4] backgroundColor = .(0.1f, 0.2f, 0.6f, 1.0f);
-		_deviceContext.ClearRenderTargetView(ref *_frameBufferView, backgroundColor[0]);
-
-		D3D11_VIEWPORT viewport = .();
-		viewport.TopLeftX = 0;
-		viewport.TopLeftY = 0;
-		viewport.Width = width;
-		viewport.Height = height;
-		viewport.MinDepth = 0.0f;
-		viewport.MaxDepth = 1.0f;
-		_deviceContext.RSSetViewports(1, &viewport);
-
-		_deviceContext.OMSetRenderTargets(1, &_frameBufferView, null);
 
 		_deviceContext.IASetPrimitiveTopology(.D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	}
-
-	public void TestRenderingResize()
-	{
-		_deviceContext.OMSetRenderTargets(0, null, null);
-		_frameBufferView.Release();
-
-		var result = _swapChain.ResizeBuffers(0, 0, 0, .UNKNOWN, 0);
-		Runtime.Assert(result == 0);
-
-		ID3D11Texture2D* d3d11FrameBuffer = ?;
-		result = _swapChain.GetBuffer(0, ID3D11Texture2D.IID, (void**)&d3d11FrameBuffer);
-		Runtime.Assert(result == 0);
-
-		result = _device.CreateRenderTargetView(ref *d3d11FrameBuffer, null, &_frameBufferView);
-		Runtime.Assert(result == 0);
-		d3d11FrameBuffer.Release();
 	}
 }
 

@@ -50,15 +50,25 @@ class Mesh
 	}
 
 	// TODO: Shader shouldn't be passed in here, neither should projectionMatrix.
-	// TODO: Actually use canvas here.
 	public void Draw(Driver driver, Canvas canvas, Texture texture, Shader shader, ref float[16] projectionMatrix)
 	{
-		Matrix.MatrixOrtho(ref projectionMatrix, 0.0f, 640.0f, 0.0f, 480.0f, float.MinValue, float.MaxValue);
+		Matrix.MatrixOrtho(ref projectionMatrix, 0.0f, canvas.Width, 0.0f, canvas.Height, float.MinValue, float.MaxValue);
 		shader.SetProjectionMatrix(driver, ref projectionMatrix);
 
 		shader.Bind(driver);
 
 		if (IndexCount == 0) return;
+
+		D3D11_VIEWPORT viewport = .();
+		viewport.TopLeftX = 0;
+		viewport.TopLeftY = 0;
+		viewport.Width = canvas.Width;
+		viewport.Height = canvas.Height;
+		viewport.MinDepth = 0.0f;
+		viewport.MaxDepth = 1.0f;
+		driver.DeviceContext.RSSetViewports(1, &viewport);
+
+		driver.DeviceContext.OMSetRenderTargets(1, &canvas.RenderTargetView, null);
 
 		D3D11_MAPPED_SUBRESOURCE mappedSubResource = ?;
 		driver.DeviceContext.Map(ref *_vertexBuffer, 0, .WRITE_DISCARD, 0, & mappedSubResource);
@@ -81,6 +91,11 @@ class Mesh
 
 		driver.DeviceContext.Draw(VertexCount, 0);
 		driver.DeviceContext.DrawIndexed((.)IndexCount, 0, 0);
+
+		ID3D11ShaderResourceView* clearResources = null;
+		driver.DeviceContext.PSSetShaderResources(0, 1, &clearResources);
+		ID3D11SamplerState* clearSamplers = null;
+		driver.DeviceContext.PSSetSamplers(0, 1, &clearSamplers);
 	}
 
 	public void Clear()
