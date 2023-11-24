@@ -6,22 +6,51 @@ class Immediate
 {
 	Mesh _mesh ~ delete _;
 	Shader _shader ~ delete _;
+
 	float[16] _projectionMatrix;
+
+	float[] _vertexComponents ~ delete _;
+	int _vertexCount;
+	int _vertexCapacity;
+	uint32[] _indices ~ delete _;
+	int _indexCount;
 
 	public this(Driver driver, int vertexCapacity = 1024, int indexCapacity = 1024)
 	{
 		_shader = new .(driver);
 		_mesh = new .(driver, vertexCapacity, indexCapacity);
+
+		_vertexComponents = new .[vertexCapacity * Mesh.ComponentsPerVertex];
+		_vertexCapacity = (.)vertexCapacity;
+		_indices = new .[indexCapacity];
 	}
 
 	public void Draw(Driver driver, Canvas canvas, Texture texture)
 	{
-		_mesh.Draw(driver, canvas, texture, _shader, ref _projectionMatrix);
+		texture.Bind(driver);
+		canvas.Bind(driver);
+
+		_shader.Bind(driver);
+		Matrix.MatrixOrtho(ref _projectionMatrix, 0.0f, canvas.Width, 0.0f, canvas.Height, float.MinValue, float.MaxValue);
+		_shader.SetProjectionMatrix(driver, ref _projectionMatrix);
+
+		let needsMeshResize = _mesh.VertexCapacity < _vertexCapacity || _mesh.IndexCapacity < _indices.Count;
+		if (needsMeshResize)
+		{
+			delete _mesh;
+			_mesh = new Mesh(driver, _vertexCapacity, _indices.Count);
+		}
+
+		_mesh.SetVertices(driver, _vertexComponents, _vertexCount);
+		_mesh.SetIndices(driver, _indices, _indexCount);
+
+		_mesh.Draw(driver);
 	}
 
 	public void Clear()
 	{
-		_mesh.Clear();
+		_vertexCount = 0;
+		_indexCount = 0;
 	}
 
 	[Inline]
@@ -31,25 +60,25 @@ class Immediate
 		Clear();
 	}
 
-	public void Vertex(Driver driver, Vector2 position, Vector2 uv, Color color)
+	public void Vertex(Vector2 position, Vector2 uv, Color color)
 	{
-		_mesh.EnsureCapacity(driver, _mesh.VertexCount + 1, _mesh.IndexCount + 1);
+		EnsureCapacity(_vertexCount + 1, _indexCount + 1);
 
-		RawIndex(_mesh.VertexCount);
+		RawIndex(_vertexCount);
 		RawVertex(position, uv, color);
 	}
 
-	public void RotatedQuad(Driver driver, RotatedRectangle destination, Rectangle source, Color color)
+	public void RotatedQuad(RotatedRectangle destination, Rectangle source, Color color)
 	{
-		_mesh.EnsureCapacity(driver, _mesh.VertexCount + 4, _mesh.IndexCount + 6);
+		EnsureCapacity(_vertexCount + 4, _indexCount + 6);
 
-		RawIndex(_mesh.VertexCount);
-		RawIndex(_mesh.VertexCount + 1);
-		RawIndex(_mesh.VertexCount + 2);
+		RawIndex(_vertexCount);
+		RawIndex(_vertexCount + 1);
+		RawIndex(_vertexCount + 2);
 
-		RawIndex(_mesh.VertexCount);
-		RawIndex(_mesh.VertexCount + 2);
-		RawIndex(_mesh.VertexCount + 3);
+		RawIndex(_vertexCount);
+		RawIndex(_vertexCount + 2);
+		RawIndex(_vertexCount + 3);
 
 		RawVertex(destination.BottomLeft, source.BottomLeft, color);
 		RawVertex(destination.BottomRight, source.BottomRight, color);
@@ -58,19 +87,19 @@ class Immediate
 	}
 
 	[Inline]
-	public void Quad(Driver driver, Rectangle destination, Rectangle source, Color color)
+	public void Quad(Rectangle destination, Rectangle source, Color color)
 	{
-		RotatedQuad(driver, .(destination, .Zero, 0.0f), source, color);
+		RotatedQuad(.(destination, .Zero, 0.0f), source, color);
 	}
 
-	public void RotatedCircle(Driver driver, Circle circle, float rotation, Rectangle source, Color color, int stepCount = 16)
+	public void RotatedCircle(Circle circle, float rotation, Rectangle source, Color color, int stepCount = 16)
 	{
 		let triangleCount = stepCount - 2;
 
-		_mesh.EnsureCapacity(driver, _mesh.VertexCount + (.)stepCount, _mesh.IndexCount + (.)triangleCount * 3);
+		EnsureCapacity(_vertexCount + (.)stepCount, _indexCount + (.)triangleCount * 3);
 
 		let angleStep = Math.PI_f * 2.0f / stepCount;
-		let baseIndex = _mesh.VertexCount;
+		let baseIndex = _vertexCount;
 
 		for (var angle = 0.0f; angle < Math.PI_f * 2.0f; angle += angleStep)
 		{
@@ -90,12 +119,12 @@ class Immediate
 	}
 
 	[Inline]
-	public void Circle(Driver driver, Circle circle, Rectangle source, Color color, int stepCount = 16)
+	public void Circle(Circle circle, Rectangle source, Color color, int stepCount = 16)
 	{
-		RotatedCircle(driver, circle, 0.0f, source, color, stepCount);
+		RotatedCircle(circle, 0.0f, source, color, stepCount);
 	}
 
-	public void RotatedRoundedQuad(Driver driver, RotatedRectangle destination, Rectangle source, float radius, Color color, int stepCount = 4)
+	public void RotatedRoundedQuad(RotatedRectangle destination, Rectangle source, float radius, Color color, int stepCount = 4)
 	{
 		// Calculate the amount of the source region that each corner will occupy.
 		let uDiameter = radius / destination.Size.X * source.Size.X * 2.0f;
@@ -103,38 +132,38 @@ class Immediate
 		Vector2 cornerSourceSize = .(uDiameter, vDiameter);
 
 		// Bottom left corner:
-		let bottomLeftCornerVertex = _mesh.VertexCount;
-		let horizontalRectangleBottomLeftVertex = _mesh.VertexCount + 1;
+		let bottomLeftCornerVertex = _vertexCount;
+		let horizontalRectangleBottomLeftVertex = _vertexCount + 1;
 		Vector2 bottomLeftPosition = destination.BottomLeft + Vector2(radius, radius).RotatedAround(destination);
 		Rectangle bottomLeftSource = .(source.BottomLeft, cornerSourceSize);
-		RotatedPie(driver, .(bottomLeftPosition, radius), destination.Rotation, .(Math.PI_f, Math.PI_f * 1.5f), bottomLeftSource, color, stepCount);
-		let verticalRectangleBottomLeftVertex = (uint32)(_mesh.VertexCount - 1);
+		RotatedPie(.(bottomLeftPosition, radius), destination.Rotation, .(Math.PI_f, Math.PI_f * 1.5f), bottomLeftSource, color, stepCount);
+		let verticalRectangleBottomLeftVertex = (uint32)(_vertexCount - 1);
 
 		// Bottom right corner:
-		let bottomRightCornerVertex = _mesh.VertexCount;
-		let verticalRectangleBottomRightVertex = _mesh.VertexCount + 1;
+		let bottomRightCornerVertex = _vertexCount;
+		let verticalRectangleBottomRightVertex = _vertexCount + 1;
 		Vector2 bottomRightPosition = destination.BottomRight + Vector2(-radius, radius).RotatedAround(destination);
 		Rectangle bottomRightSource = .(source.BottomRight + .(-uDiameter, 0.0f), cornerSourceSize);
-		RotatedPie(driver, .(bottomRightPosition, radius), destination.Rotation, .(Math.PI_f * 1.5f, Math.PI_f * 2.0f), bottomRightSource, color, stepCount);
-		let horizontalRectangleBottomRightVertex = (uint32)(_mesh.VertexCount - 1);
+		RotatedPie(.(bottomRightPosition, radius), destination.Rotation, .(Math.PI_f * 1.5f, Math.PI_f * 2.0f), bottomRightSource, color, stepCount);
+		let horizontalRectangleBottomRightVertex = (uint32)(_vertexCount - 1);
 
 		// Top right corner:
-		let topRightCornerVertex = _mesh.VertexCount;
-		let horizontalRectangleTopRightVertex = _mesh.VertexCount + 1;
+		let topRightCornerVertex = _vertexCount;
+		let horizontalRectangleTopRightVertex = _vertexCount + 1;
 		Vector2 topRightPosition = destination.TopRight + Vector2(-radius, -radius).RotatedAround(destination);
 		Rectangle topRightSource = .(source.TopRight + .(-uDiameter, -vDiameter), cornerSourceSize);
-		RotatedPie(driver, .(topRightPosition, radius), destination.Rotation, .(0.0f, Math.PI_f * 0.5f), topRightSource, color, stepCount);
-		let verticalRectangleTopRightVertex = (uint32)(_mesh.VertexCount - 1);
+		RotatedPie(.(topRightPosition, radius), destination.Rotation, .(0.0f, Math.PI_f * 0.5f), topRightSource, color, stepCount);
+		let verticalRectangleTopRightVertex = (uint32)(_vertexCount - 1);
 
 		// Top left corner:
-		let topLeftCornerVertex = _mesh.VertexCount;
-		let verticalRectangleTopLeftVertex = _mesh.VertexCount + 1;
+		let topLeftCornerVertex = _vertexCount;
+		let verticalRectangleTopLeftVertex = _vertexCount + 1;
 		Vector2 topLeftPosition = destination.TopLeft + Vector2(radius, -radius).RotatedAround(destination);
 		Rectangle topLeftSource = .(source.TopLeft + .(0.0f, -vDiameter), cornerSourceSize);
-		RotatedPie(driver, .(topLeftPosition, radius), destination.Rotation, .(Math.PI_f * 0.5f, Math.PI_f), topLeftSource, color, stepCount);
-		let horizontalRectangleTopLeftVertex = (uint32)(_mesh.VertexCount - 1);
+		RotatedPie(.(topLeftPosition, radius), destination.Rotation, .(Math.PI_f * 0.5f, Math.PI_f), topLeftSource, color, stepCount);
+		let horizontalRectangleTopLeftVertex = (uint32)(_vertexCount - 1);
 
-		_mesh.EnsureCapacity(driver, _mesh.VertexCount, _mesh.IndexCount + 12);
+		EnsureCapacity(_vertexCount, _indexCount + 30);
 
 		// Connect existing vertices from the corners to fill in the center.
 		// More than the minimum number of triangles are used for this to prevent
@@ -185,18 +214,18 @@ class Immediate
 	}
 
 	[Inline]
-	public void RoundedQuad(Driver driver, Rectangle destination, Rectangle source, float radius, Color color, int stepCount = 4)
+	public void RoundedQuad(Rectangle destination, Rectangle source, float radius, Color color, int stepCount = 4)
 	{
-		RotatedRoundedQuad(driver, .(destination, .Zero, 0.0f), source, radius, color, stepCount);
+		RotatedRoundedQuad(.(destination, .Zero, 0.0f), source, radius, color, stepCount);
 	}
 
 	// TODO: Maybe combine circular drawing logic?
-	public void RotatedPie(Driver driver, Circle circle, float rotation, Bounds bounds, Rectangle source, Color color, int stepCount = 16)
+	public void RotatedPie(Circle circle, float rotation, Bounds bounds, Rectangle source, Color color, int stepCount = 16)
 	{
-		_mesh.EnsureCapacity(driver, _mesh.VertexCount + (.)stepCount + 2, _mesh.IndexCount + (.)stepCount * 3);
+		EnsureCapacity(_vertexCount + (.)stepCount + 2, _indexCount + (.)stepCount * 3);
 
 		let angleStep = bounds.Range / stepCount;
-		let baseIndex = _mesh.VertexCount;
+		let baseIndex = _vertexCount;
 
 		let centerU = source.Position.X + source.Size.X * 0.5f;
 		let centerV = source.Position.Y + source.Size.Y * 0.5f;
@@ -222,33 +251,54 @@ class Immediate
 	}
 
 	[Inline]
-	public void Pie(Driver driver, Circle circle, Bounds bounds, Rectangle source, Color color, int stepCount = 16)
+	public void Pie(Circle circle, Bounds bounds, Rectangle source, Color color, int stepCount = 16)
 	{
-		RotatedPie(driver, circle, 0.0f, bounds, source, color, stepCount);
+		RotatedPie(circle, 0.0f, bounds, source, color, stepCount);
 	}
 
 	// Add a vertex that isn't paired with an index, and without ensuring capacity.
 	[Inline]
 	void RawVertex(Vector2 position, Vector2 uv, Color color)
 	{
-		int baseIndex = (.)_mesh.VertexCount * Mesh.ComponentsPerVertex;
+		int baseIndex = _vertexCount * Mesh.ComponentsPerVertex;
 
-		_mesh.VertexComponents[baseIndex] = position.X;
-		_mesh.VertexComponents[baseIndex + 1] = position.Y;
-		_mesh.VertexComponents[baseIndex + 2] = uv.X;
-		_mesh.VertexComponents[baseIndex + 3] = uv.Y;
-		_mesh.VertexComponents[baseIndex + 4] = color.R;
-		_mesh.VertexComponents[baseIndex + 5] = color.G;
-		_mesh.VertexComponents[baseIndex + 6] = color.B;
-		_mesh.VertexComponents[baseIndex + 7] = color.A;
+		_vertexComponents[baseIndex] = position.X;
+		_vertexComponents[baseIndex + 1] = position.Y;
+		_vertexComponents[baseIndex + 2] = uv.X;
+		_vertexComponents[baseIndex + 3] = uv.Y;
+		_vertexComponents[baseIndex + 4] = color.R;
+		_vertexComponents[baseIndex + 5] = color.G;
+		_vertexComponents[baseIndex + 6] = color.B;
+		_vertexComponents[baseIndex + 7] = color.A;
 
-		_mesh.VertexCount++;
+		_vertexCount++;
 	}
 
 	// Add an index that isn't paired with a vertex, and without ensuring capacity.
 	[Inline]
-	void RawIndex(uint32 index)
+	void RawIndex(int index)
 	{
-		_mesh.Indices[_mesh.IndexCount++] = index;
+		_indices[_indexCount++] = (.)index;
+	}
+
+	// TODO: A resize accidentally wipes any existing vertex/index data.
+	void EnsureCapacity(int vertexCapacity, int indexCapacity)
+	{
+		var newVertexCapacity = _vertexCapacity;
+		while (newVertexCapacity < vertexCapacity) newVertexCapacity *= 2;
+		if (newVertexCapacity != _vertexCapacity)
+		{
+			delete _vertexComponents;
+			_vertexComponents = new .[newVertexCapacity * Mesh.ComponentsPerVertex];
+			_vertexCapacity = newVertexCapacity;
+		}
+
+		int newIndexCapacity = _indices.Count;
+		while (newIndexCapacity < indexCapacity) newIndexCapacity *= 2;
+		if (newIndexCapacity != _indices.Count)
+		{
+			delete _indices;
+			_indices = new .[newIndexCapacity];
+		}
 	}
 }

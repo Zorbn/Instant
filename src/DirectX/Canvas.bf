@@ -12,10 +12,9 @@ class Canvas
 {
 	public int Width { get; private set; }
 	public int Height { get; private set; }
+	public Texture Texture ~ delete _;
 
-	public Texture Texture { get; private set; } ~ delete _;
-	internal ref ID3D11RenderTargetView* RenderTargetView { get => ref _renderTargetView; }
-
+	int _id;
 	ID3D11RenderTargetView* _renderTargetView ~ _.Release();
 
 	public this(Driver driver, int width, int height)
@@ -23,7 +22,9 @@ class Canvas
 		Width = width;
 		Height = height;
 
+		_id = driver.GetNextCanvasId();
 		Texture = new .(driver, width, height, .Pixelated, null);
+		Texture.CanvasId = _id;
 
 		D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDescriptor = .();
 		renderTargetViewDescriptor.Format = .B8G8R8A8_UNORM;
@@ -42,6 +43,8 @@ class Canvas
 		Width = width;
 		Height = height;
 
+		_id = driver.GetNextCanvasId();
+
 		var result = driver.SwapChain.ResizeBuffers(0, 0, 0, .UNKNOWN, 0);
 		Runtime.Assert(result == 0);
 
@@ -58,6 +61,31 @@ class Canvas
 	{
 		float[4] backgroundColor = .(color.R, color.G, color.B, color.A);
 		driver.DeviceContext.ClearRenderTargetView(ref *_renderTargetView, backgroundColor[0]);
+	}
+
+	public void Bind(Driver driver)
+	{
+		if (driver.BoundCanvasTextureId == _id)
+		{
+			ID3D11ShaderResourceView* clearResources = null;
+			driver.DeviceContext.PSSetShaderResources(0, 1, &clearResources);
+			ID3D11SamplerState* clearSamplers = null;
+			driver.DeviceContext.PSSetSamplers(0, 1, &clearSamplers);
+
+			driver.BoundCanvasTextureId = -1;
+		}
+
+		D3D11_VIEWPORT viewport = .();
+		viewport.TopLeftX = 0;
+		viewport.TopLeftY = 0;
+		viewport.Width = Width;
+		viewport.Height = Height;
+		viewport.MinDepth = 0.0f;
+		viewport.MaxDepth = 1.0f;
+		driver.DeviceContext.RSSetViewports(1, &viewport);
+
+		driver.DeviceContext.OMSetRenderTargets(1, &_renderTargetView, null);
+		driver.BoundCanvasId = _id;
 	}
 }
 

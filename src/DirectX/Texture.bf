@@ -15,8 +15,7 @@ class Texture
 	}
 
 	internal ref ID3D11Texture2D* DXTexture { get => ref _texture; }
-	internal ref ID3D11ShaderResourceView* TextureView { get => ref _textureView; }
-	internal ref ID3D11SamplerState* SamplerState { get => ref _samplerState; }
+	internal int CanvasId = -1;
 
 	ID3D11Texture2D* _texture ~ _.Release();
 	ID3D11ShaderResourceView* _textureView ~ _.Release();
@@ -48,7 +47,7 @@ class Texture
 		textureDescriptor.Height = (.)height;
 		textureDescriptor.MipLevels = 1;
 		textureDescriptor.ArraySize = 1;
-		textureDescriptor.Format = .R8G8B8A8_UNORM;
+		textureDescriptor.Format = .B8G8R8A8_UNORM;
 		textureDescriptor.SampleDesc.Count = 1;
 		textureDescriptor.Usage = .DEFAULT;
 		textureDescriptor.BindFlags = .RENDER_TARGET | .SHADER_RESOURCE;
@@ -57,17 +56,13 @@ class Texture
 		D3D11_SUBRESOURCE_DATA textureSubResourceData = .();
 		if (pixels != null)
 		{
+			textureDescriptor.Format = .R8G8B8A8_UNORM;
 			textureDescriptor.Usage = .IMMUTABLE;
 			textureDescriptor.BindFlags = .SHADER_RESOURCE;
 
 			textureSubResourceData.pSysMem = &pixels.Value[0];
 			textureSubResourceData.SysMemPitch = (.)width * Instant.Image.PixelComponentCount;
 			textureSubResourceDataPointer = &textureSubResourceData;
-		}
-		else
-		{
-			// TODO
-			textureDescriptor.Format = .B8G8R8A8_UNORM;
 		}
 
 		driver.Device.CreateTexture2D(textureDescriptor, textureSubResourceDataPointer, &_texture);
@@ -81,7 +76,21 @@ class Texture
 		driver.Device.CreateShaderResourceView(ref *_texture, &shaderResourcesViewDescriptor, &_textureView);
 	}
 
+	public void Bind(Driver driver)
+	{
+		if (driver.BoundCanvasId != -1 && CanvasId == driver.BoundCanvasId)
+		{
+			ID3D11RenderTargetView* clearRenderTargetView = null;
+			driver.DeviceContext.OMSetRenderTargets(1, &clearRenderTargetView, null);
 
+			driver.BoundCanvasId = -1;
+		}
+
+		driver.DeviceContext.PSSetShaderResources(0, 1, &_textureView);
+		driver.DeviceContext.PSSetSamplers(0, 1, &_samplerState);
+
+		driver.BoundCanvasTextureId = CanvasId;
+	}
 }
 
 #endif

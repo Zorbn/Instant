@@ -15,6 +15,11 @@ class Driver
 	internal ID3D11DeviceContext1* DeviceContext { get => _deviceContext; }
 	internal IDXGISwapChain1* SwapChain { get => _swapChain; }
 
+	internal int BoundCanvasId { get; set; } = -1;
+	internal int BoundCanvasTextureId { get; set; } = -1;
+
+	int _nextCanvasId;
+
 	ID3D11Device1* _device ~ _.Release();
 	ID3D11DeviceContext1* _deviceContext ~ _.Release();
 
@@ -27,7 +32,7 @@ class Driver
 	{
 		DeviceInit();
 		SwapChainInit(window);
-		TestRenderingInit();
+		StateInit();
 	}
 
 	public static SDL.WindowFlags PrepareWindowFlags()
@@ -39,6 +44,8 @@ class Driver
 	{
 		_swapChain.Present(1, 0);
 	}
+
+	internal int GetNextCanvasId() => _nextCanvasId++;
 
 	void DeviceInit()
 	{
@@ -109,9 +116,9 @@ class Driver
 		dxgiFactory.Release();
 	}
 
-	void TestRenderingInit()
+	void StateInit()
 	{
-		/// Create rasterizer state.
+		// Create rasterizer state.
 		D3D11_RASTERIZER_DESC rasterizerDescriptor = .();
 		rasterizerDescriptor.FillMode = .SOLID;
 		rasterizerDescriptor.CullMode = .NONE;
@@ -120,7 +127,7 @@ class Driver
 		_device.CreateRasterizerState(rasterizerDescriptor, &_rasterizerState);
 		_deviceContext.RSSetState(_rasterizerState);
 
-		/// Create blend state.
+		// Create blend state.
 		D3D11_BLEND_DESC1 blendStateDescriptor = .();
 		blendStateDescriptor.RenderTarget[0].BlendEnable = 1;
 		blendStateDescriptor.RenderTarget[0].SrcBlend = .SRC_ALPHA;

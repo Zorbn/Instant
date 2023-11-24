@@ -7,6 +7,8 @@ class Program
 {
 	/*
 	 * TODO:
+	 * Simplify the backend-specific code as much as possible, ie: mesh shouldn't be backend-specific.
+	 * Immediate shouldn't mess with GPU resources except when about to draw, in normal functions it should just use CPU arrays.
 	 * Create interfaces for backend specific resources to help keep them in sync.
 	 * General cleanup.
 	 * Make sure OpenGL and DX have parity.
@@ -38,12 +40,8 @@ class Program
 		//var checkerTexture = scope Texture(2, 2, .Pixelated,
 		//	.(scope .(255, 255, 255, 125, 0, 0, 0, 125, 0, 0, 0, 125, 255, 255, 255, 125)));
 
-		int i = 0;
-
 		main:while (true)
 		{
-			i++;
-
 			float deltaTime = (.)stopwatch.Elapsed.TotalSeconds;
 			time += deltaTime;
 			stopwatch.Restart();
@@ -83,38 +81,37 @@ class Program
 			screenCanvas.Clear(driver, .Green);
 			smallCanvas.Clear(driver, .(38.0f / 255.0f, 129.0f / 255.0f, 217.0f / 255.0f, 1.0f));
 
-			im.RotatedRoundedQuad(driver, .(.(100.0f, 100.0f), .(50.0f, 50.0f), .Zero, time), .(.Zero, .One * 2.0f), 10.0f, .Blue);
-
-			im.RotatedQuad(driver, .(.(300.0f, 100.0f), .(50.0f, 50.0f), .(25.0f, 25.0f), time), .One, .Red);
-
-			im.Flush(driver, smallCanvas, testTexture);
+			im.RotatedRoundedQuad(.(.(100.0f, 100.0f), .(50.0f, 50.0f), .Zero, time), .(.Zero, .One * 2.0f), 10.0f, .Blue);
+			im.RotatedRoundedQuad(.(.(150.0f, 100.0f), .(50.0f, 50.0f), .Zero, time), .(.Zero, .One * 2.0f), 10.0f, .Blue);
 
 			//im.Vertex(.(0.0f, 0.0f), .(0.0f, 0.0f), .Red);
 			//im.Vertex(.(32.0f, 0.0f), .(1.0f, 0.0f), .Green);
 			//im.Vertex(.(32.0f, 32.0f), .(1.0f, 1.0f), .Blue);
 
-			//im.Circle(.(.(100.0f, 100.0f), 100.0f), .(.Zero, .(2.0f, 2.0f)), .Blue);
-			//im.Pie(.(.(100.0f, 100.0f), 100.0f), .(0.0f, Math.PI_f * 1.75f), .(.Zero, .(2.0f, 2.0f)), .Blue, 16);
-			//im.RotatedPie(.(.(400.0f, 100.0f), 100.0f), Math.PI_f * 0.25f, .(0.0f, Math.PI_f * 1.75f), .(.Zero, .(2.0f, 2.0f)), .Blue, 16);
-			//im.RoundedQuad(.(.(100.0f, 100.0f), .(50.0f, 50.0f)), .One, 10.0f, .Red);
+			im.RotatedQuad(.(.(300.0f, 100.0f), .(50.0f, 50.0f), .(25.0f, 25.0f), time), .One, .Red);
+			im.RotatedQuad(.(.(400.0f, 100.0f), .(50.0f, 50.0f), .(25.0f, 25.0f), time), .One, .Red);
 
-			//im.RotatedRoundedQuad(driver, .(.(100.0f, 100.0f), .(50.0f, 50.0f), .Zero, time), .(.Zero, .One * 2.0f), 10.0f, .Blue);
+			/*
+			im.Circle(.(.(100.0f, 100.0f), 100.0f), .(.Zero, .(2.0f, 2.0f)), .Blue);
+			im.Pie(.(.(100.0f, 100.0f), 100.0f), .(0.0f, Math.PI_f * 1.75f), .(.Zero, .(2.0f, 2.0f)), .Blue, 16);
+			im.RotatedPie(.(.(400.0f, 100.0f), 100.0f), Math.PI_f * 0.25f, .(0.0f, Math.PI_f * 1.75f), .(.Zero, .(2.0f, 2.0f)), .Blue, 16);
+			im.RoundedQuad(.(.(100.0f, 100.0f), .(50.0f, 50.0f)), .One, 10.0f, .Red);
 
-			//im.RoundedQuad(.(.(300.0f, 100.0f), .(50.0f, 50.0f)), .One, 10.0f, .Red);
+			im.RotatedRoundedQuad(.(.(100.0f, 100.0f), .(50.0f, 50.0f), .Zero, time), .(.Zero, .One * 2.0f), 10.0f, .Blue);
 
-			//im.RotatedQuad(driver, .(.(300.0f, 100.0f), .(50.0f, 50.0f), .(25.0f, 25.0f), time), .One, .Red);
+			im.RoundedQuad(.(.(300.0f, 100.0f), .(50.0f, 50.0f)), .One, 10.0f, .Red);
 
-			//im.RotatedQuad(.(.(100.0f, 100.0f), .(50.0f, 50.0f), .(0.0f, 0.0f), Math.PI_f * 0.25f), .One, .Blue);
-			//im.RotatedQuad(.(.(100.0f, 100.0f), .(50.0f, 50.0f), .(25.0f, 25.0f), Math.PI_f * 0.25f), .One, .Red);
+			im.RotatedQuad(.(.(300.0f, 100.0f), .(50.0f, 50.0f), .(25.0f, 25.0f), time), .One, .Red);
 
-			//im.Quad(driver, .(.Zero, .(screenCanvas.Width, screenCanvas.Height)), .One, .White);
+			im.RotatedQuad(.(.(100.0f, 100.0f), .(50.0f, 50.0f), .(0.0f, 0.0f), Math.PI_f * 0.25f), .One, .Blue);
+			im.RotatedQuad(.(.(100.0f, 100.0f), .(50.0f, 50.0f), .(25.0f, 25.0f), Math.PI_f * 0.25f), .One, .Red);
+			*/
 
-			//im.Flush(driver, smallCanvas, testTexture);
+			im.Flush(driver, smallCanvas, testTexture);
 
-			im.Quad(driver, .(.Zero, .(screenCanvas.Width, screenCanvas.Height)), .One, .White);
+			im.Quad(.(.Zero, .(screenCanvas.Width, screenCanvas.Height)), .One, .White);
 
 			im.Flush(driver, screenCanvas, smallCanvas.Texture);
-
 
 			driver.Present(window);
 		}

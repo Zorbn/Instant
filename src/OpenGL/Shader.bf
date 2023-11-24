@@ -10,6 +10,7 @@ namespace Instant;
 // their usage match other backends. Then the API for shaders could be generalized.
 // For now, shader will just be a wrapper for the minimum functionality we need.
 // https://learnopengl.com/Advanced-OpenGL/Advanced-GLSL
+// Once shaders can be customized then Mesh should accept a generic vertex type.
 class Shader
 {
 	const String VertexCode =
@@ -76,8 +77,6 @@ class Shader
 		_projectionMatrixUniform = GL.glGetUniformLocation(_shaderProgram, "projectionMatrix");
 	}
 
-	// TODO: If shaders become a thing that users might want to create, they should be passed to Draw() explicitly rather
-	// than bound before hand.
 	public void Bind()
 	{
 		GL.glUseProgram(_shaderProgram);
