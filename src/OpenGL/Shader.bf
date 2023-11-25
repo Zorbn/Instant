@@ -62,7 +62,7 @@ class Shader
 	uint32 _shaderProgram ~ GL.glDeleteProgram(_);
 	int32 _projectionMatrixUniform;
 
-	public this()
+	public this(Driver driver)
 	{
 		let vertexShader = GLHelper.CreateShader(VertexCode, .GL_VERTEX_SHADER);
 		let fragmentShader = GLHelper.CreateShader(FragmentCode, .GL_FRAGMENT_SHADER);
@@ -77,12 +77,12 @@ class Shader
 		_projectionMatrixUniform = GL.glGetUniformLocation(_shaderProgram, "projectionMatrix");
 	}
 
-	public void Bind()
+	public void Bind(Driver driver)
 	{
 		GL.glUseProgram(_shaderProgram);
 	}
 
-	public void SetProjectionMatrix(ref float[16] matrix)
+	public void SetProjectionMatrix(Driver driver, ref float[16] matrix)
 	{
 		GL.glUniformMatrix4fv(_projectionMatrixUniform, 1, false, &matrix[0]);
 	}

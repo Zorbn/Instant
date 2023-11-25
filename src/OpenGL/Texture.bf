@@ -13,15 +13,14 @@ class Texture
 		Smooth
 	}
 
-	// TODO: Rename to GLTexture.
-	internal uint32 Texture { get; private set; } ~ GL.glDeleteTextures(1, &_);
+	internal uint32 GLTexture { get; private set; } ~ GL.glDeleteTextures(1, &_);
 
-	public this(int width, int height, Filter filter, Span<uint8>? pixels)
+	public this(Driver driver, int width, int height, Filter filter, Span<uint8>? pixels)
 	{
 		uint32 texture = 0;
 		GL.glGenTextures(1, &texture);
 		GL.glBindTexture(.GL_TEXTURE_2D, texture);
-		Texture = texture;
+		GLTexture = texture;
 
 		GL.TextureMinFilter glMinFilter;
 		GL.TextureMagFilter glMagFilter;
@@ -52,7 +51,10 @@ class Texture
 		GL.glTexParameteri(.GL_TEXTURE_2D, .GL_TEXTURE_MIN_FILTER, (.)glMagFilter);
 	}
 
-
+	public void Bind(Driver driver)
+	{
+		GL.glBindTexture(.GL_TEXTURE_2D, GLTexture);
+	}
 }
 
 #endif

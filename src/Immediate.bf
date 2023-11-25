@@ -110,7 +110,7 @@ class Immediate
 			RawVertex(.(x, y), .(u, v), color);
 		}
 
-		for (uint32 step = 1; step < (.)stepCount - 1; step++)
+		for (var step = 1; step < (.)stepCount - 1; step++)
 		{
 			RawIndex(baseIndex);
 			RawIndex(baseIndex + step + 1);
@@ -137,7 +137,7 @@ class Immediate
 		Vector2 bottomLeftPosition = destination.BottomLeft + Vector2(radius, radius).RotatedAround(destination);
 		Rectangle bottomLeftSource = .(source.BottomLeft, cornerSourceSize);
 		RotatedPie(.(bottomLeftPosition, radius), destination.Rotation, .(Math.PI_f, Math.PI_f * 1.5f), bottomLeftSource, color, stepCount);
-		let verticalRectangleBottomLeftVertex = (uint32)(_vertexCount - 1);
+		let verticalRectangleBottomLeftVertex = _vertexCount - 1;
 
 		// Bottom right corner:
 		let bottomRightCornerVertex = _vertexCount;
@@ -145,7 +145,7 @@ class Immediate
 		Vector2 bottomRightPosition = destination.BottomRight + Vector2(-radius, radius).RotatedAround(destination);
 		Rectangle bottomRightSource = .(source.BottomRight + .(-uDiameter, 0.0f), cornerSourceSize);
 		RotatedPie(.(bottomRightPosition, radius), destination.Rotation, .(Math.PI_f * 1.5f, Math.PI_f * 2.0f), bottomRightSource, color, stepCount);
-		let horizontalRectangleBottomRightVertex = (uint32)(_vertexCount - 1);
+		let horizontalRectangleBottomRightVertex = _vertexCount - 1;
 
 		// Top right corner:
 		let topRightCornerVertex = _vertexCount;
@@ -153,7 +153,7 @@ class Immediate
 		Vector2 topRightPosition = destination.TopRight + Vector2(-radius, -radius).RotatedAround(destination);
 		Rectangle topRightSource = .(source.TopRight + .(-uDiameter, -vDiameter), cornerSourceSize);
 		RotatedPie(.(topRightPosition, radius), destination.Rotation, .(0.0f, Math.PI_f * 0.5f), topRightSource, color, stepCount);
-		let verticalRectangleTopRightVertex = (uint32)(_vertexCount - 1);
+		let verticalRectangleTopRightVertex = _vertexCount - 1;
 
 		// Top left corner:
 		let topLeftCornerVertex = _vertexCount;
@@ -161,7 +161,7 @@ class Immediate
 		Vector2 topLeftPosition = destination.TopLeft + Vector2(radius, -radius).RotatedAround(destination);
 		Rectangle topLeftSource = .(source.TopLeft + .(0.0f, -vDiameter), cornerSourceSize);
 		RotatedPie(.(topLeftPosition, radius), destination.Rotation, .(Math.PI_f * 0.5f, Math.PI_f), topLeftSource, color, stepCount);
-		let horizontalRectangleTopLeftVertex = (uint32)(_vertexCount - 1);
+		let horizontalRectangleTopLeftVertex = _vertexCount - 1;
 
 		EnsureCapacity(_vertexCount, _indexCount + 30);
 
@@ -242,7 +242,7 @@ class Immediate
 			RawVertex(.(x, y), .(u, v), color);
 		}
 
-		for (uint32 step = 1; step <= (.)stepCount; step++)
+		for (var step = 1; step <= (.)stepCount; step++)
 		{
 			RawIndex(baseIndex);
 			RawIndex(baseIndex + step + 1);

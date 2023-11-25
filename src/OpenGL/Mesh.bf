@@ -1,5 +1,6 @@
 #if INSTANT_OPENGL
 
+using System;
 using OpenGL;
 using Instant.OpenGL;
 using internal Instant.Canvas;
@@ -12,12 +13,11 @@ class Mesh
 {
 	public const int ComponentsPerVertex = 8;
 
-	public float[] VertexComponents ~ delete _;
-	public uint32 VertexCount;
-	public uint32[] Indices ~ delete _;
-	public int32 IndexCount;
+	public readonly int VertexCapacity;
+	public readonly int IndexCapacity;
 
-	uint32 _vertexCapacity;
+	public int VertexCount { get; private set; }
+	public int IndexCount { get; private set; }
 
 	uint32 _vao ~ GL.glDeleteVertexArrays(1, &_);
 	uint32 _vbo ~ GL.glDeleteBuffers(1, &_);
@@ -26,18 +26,21 @@ class Mesh
 	// In WebGL, indices are a separate buffer.
 	// In CoreGL, they are passed directly through glDrawElements.
 	uint32 _indexBuffer ~ GL.glDeleteBuffers(1, &_);
+#else
+	uint32[] _indices ~ delete _;
 #endif
 
-	public this(int vertexCapacity = 1024, int indexCapacity = 1024)
+	public this(Driver driver, int vertexCapacity, int indexCapacity)
 	{
-		VertexComponents = new .[vertexCapacity * ComponentsPerVertex];
-		_vertexCapacity = (.)vertexCapacity;
-		Indices = new .[indexCapacity];
+		VertexCapacity = vertexCapacity;
+		IndexCapacity = indexCapacity;
 
 #if BF_PLATFORM_WASM
 		GL.glGenBuffers(1, &_indexBuffer);
 		GL.glBindBuffer(.GL_ELEMENT_ARRAY_BUFFER, _indexBuffer);
-		GL.glBufferData(.GL_ELEMENT_ARRAY_BUFFER, (.)(Indices.Count * sizeof(uint32)), null, .GL_STATIC_DRAW);
+		GL.glBufferData(.GL_ELEMENT_ARRAY_BUFFER, (.)(indexCapacity * sizeof(uint32)), null, .GL_STATIC_DRAW);
+#else
+		_indices = new .[indexCapacity];
 #endif
 
 		GL.glGenVertexArrays(1, &_vao);
@@ -48,74 +51,49 @@ class Mesh
 		GL.glEnableVertexAttribArray(Shader.InPosition);
 		GL.glEnableVertexAttribArray(Shader.InTextureCoordinates);
 		GL.glEnableVertexAttribArray(Shader.InColor);
-		GL.glVertexAttribPointer(Shader.InPosition, 2, .GL_FLOAT, false, sizeof(float) * Mesh.ComponentsPerVertex, (void*)0);
-		GL.glVertexAttribPointer(Shader.InTextureCoordinates, 2, .GL_FLOAT, false, sizeof(float) * Mesh.ComponentsPerVertex, (void*)(uint)(sizeof(float) * 2));
-		GL.glVertexAttribPointer(Shader.InColor, 4, .GL_FLOAT, false, sizeof(float) * Mesh.ComponentsPerVertex, (void*)(uint)(sizeof(float) * 4));
+		GL.glVertexAttribPointer(Shader.InPosition, 2, .GL_FLOAT, false, sizeof(float) * ComponentsPerVertex, (void*)0);
+		GL.glVertexAttribPointer(Shader.InTextureCoordinates, 2, .GL_FLOAT, false, sizeof(float) * ComponentsPerVertex, (void*)(uint)(sizeof(float) * 2));
+		GL.glVertexAttribPointer(Shader.InColor, 4, .GL_FLOAT, false, sizeof(float) * ComponentsPerVertex, (void*)(uint)(sizeof(float) * 4));
 
-		GL.glBufferData(.GL_ARRAY_BUFFER, (.)(_vertexCapacity * ComponentsPerVertex * sizeof(float)), null, .GL_STATIC_DRAW);
+		GL.glBufferData(.GL_ARRAY_BUFFER, (.)(VertexCapacity * ComponentsPerVertex * sizeof(float)), null, .GL_STATIC_DRAW);
 	}
 
-	// TODO: Fix this api, you shouldn't have to pass in shader/projectionMatrix here.
-	public void Draw(Canvas canvas, Texture texture, Shader shader, ref float[16] projectionMatrix)
+	public void Draw(Driver driver)
 	{
 		if (IndexCount == 0) return;
 
-		GL.glBindFramebuffer(.GL_FRAMEBUFFER, canvas.Framebuffer);
-		GL.glViewport(0, 0, (.)canvas.Width, (.)canvas.Height);
-
-		Matrix.MatrixOrtho(ref projectionMatrix, 0.0f, canvas.Width, 0.0f, canvas.Height, float.MinValue, float.MaxValue);
-		shader.SetProjectionMatrix(ref projectionMatrix);
-
-		GL.glBindBuffer(.GL_ARRAY_BUFFER, _vbo);
-		GL.glBufferSubData(.GL_ARRAY_BUFFER, 0, (.)(VertexCount * ComponentsPerVertex * sizeof(float)), &VertexComponents[0]);
-
-#if BF_PLATFORM_WASM
-		GL.glBindBuffer(.GL_ELEMENT_ARRAY_BUFFER, _indexBuffer);
-		GL.glBufferSubData(.GL_ELEMENT_ARRAY_BUFFER, 0, (.)(IndexCount * sizeof(uint32)), &Indices[0]);
-#endif
-
-		shader.Bind();
-		GL.glBindTexture(.GL_TEXTURE_2D, texture.Texture);
 		GL.glBindVertexArray(_vao);
 
 #if BF_PLATFORM_WASM
-		GL.glDrawElements(.GL_TRIANGLES, IndexCount, .GL_UNSIGNED_INT, (void*)0);
+		GL.glBindBuffer(.GL_ELEMENT_ARRAY_BUFFER, _indexBuffer);
+		GL.glDrawElements(.GL_TRIANGLES, (.)IndexCount, .GL_UNSIGNED_INT, (void*)0);
 #else
-		GL.glDrawElements(.GL_TRIANGLES, IndexCount, .GL_UNSIGNED_INT, &Indices[0]);
+		GL.glDrawElements(.GL_TRIANGLES, (.)IndexCount, .GL_UNSIGNED_INT, &_indices[0]);
 #endif
 	}
 
-	public void Clear()
+	public void SetVertices(Driver driver, float[] vertexComponents, int vertexCount)
 	{
-		VertexCount = 0;
-		IndexCount = 0;
+		Runtime.Assert(vertexCount <= VertexCapacity);
+
+		VertexCount = vertexCount;
+
+		GL.glBindBuffer(.GL_ARRAY_BUFFER, _vbo);
+		GL.glBufferSubData(.GL_ARRAY_BUFFER, 0, (.)(VertexCount * ComponentsPerVertex * sizeof(float)), &vertexComponents[0]);
 	}
 
-	public void EnsureCapacity(uint32 vertexCapacity, int32 indexCapacity)
+	public void SetIndices(Driver driver, uint32[] indices, int indexCount)
 	{
-		uint32 newVertexCapacity = _vertexCapacity;
-		while (newVertexCapacity < vertexCapacity) newVertexCapacity *= 2;
-		if (newVertexCapacity != _vertexCapacity)
-		{
-			delete VertexComponents;
-			VertexComponents = new .[newVertexCapacity * ComponentsPerVertex];
-			_vertexCapacity = newVertexCapacity;
-			GL.glBindBuffer(.GL_ARRAY_BUFFER, _vbo);
-			GL.glBufferData(.GL_ARRAY_BUFFER, (.)(_vertexCapacity * ComponentsPerVertex * sizeof(float)), null, .GL_STATIC_DRAW);
-		}
+		Runtime.Assert(indexCount <= IndexCapacity);
 
-		int newIndexCapacity = Indices.Count;
-		while (newIndexCapacity < indexCapacity) newIndexCapacity *= 2;
-		if (newIndexCapacity != Indices.Count)
-		{
-			delete Indices;
-			Indices = new .[newIndexCapacity];
+		IndexCount = indexCount;
 
 #if BF_PLATFORM_WASM
-			GL.glBindBuffer(.GL_ELEMENT_ARRAY_BUFFER, _indexBuffer);
-			GL.glBufferData(.GL_ELEMENT_ARRAY_BUFFER, (.)(Indices.Count * sizeof(uint32)), null, .GL_STATIC_DRAW);
+		GL.glBindBuffer(.GL_ELEMENT_ARRAY_BUFFER, _indexBuffer);
+		GL.glBufferSubData(.GL_ELEMENT_ARRAY_BUFFER, 0, (.)(IndexCount * sizeof(uint32)), &indices[0]);
+#else
+		Internal.MemCpy(&_indices[0], &indices[0], IndexCount * sizeof(uint32));
 #endif
-		}
 	}
 }
 
