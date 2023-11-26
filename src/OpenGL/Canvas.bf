@@ -24,7 +24,6 @@ class Canvas
 		uint32 framebuffer = 0;
 		GL.glGenFramebuffers(1, &framebuffer);
 		_framebuffer = framebuffer;
-		Console.WriteLine(_framebuffer);
 
 		Texture = new .(driver, width, height, .Pixelated, null);
 

@@ -5,12 +5,6 @@ namespace Instant;
 
 class Program
 {
-	/*
-	 * TODO:
-	 * Better color blending system like in PxlIO.
-	 * Fix immediate EnsureCapacity bug.
-	 */
-
 	static SDL2.SDL.Window* window;
 	static Driver driver;
 
@@ -52,9 +46,6 @@ class Program
 
 		var testImage = scope Image("Test.png");
 		testTexture = scope Texture(driver, testImage.Width, testImage.Height, .Pixelated, .(testImage.Pixels));
-		//var blankTexture = scope Texture(1, 1, .Pixelated, scope .(.(255, 255, 255, 255)));
-		//var checkerTexture = scope Texture(2, 2, .Pixelated,
-		//	.(scope .(255, 255, 255, 125, 0, 0, 0, 125, 0, 0, 0, 125, 255, 255, 255, 125)));
 
 		stopwatch.Start();
 
@@ -105,35 +96,22 @@ class Program
 			}
 		}
 
-		//smallCanvas.Clear(driver, .(38.0f / 255.0f, 129.0f / 255.0f, 217.0f / 255.0f, 1.0f));
 		screenCanvas.Clear(driver, .Green);
 		smallCanvas.Clear(driver, .(38.0f / 255.0f, 129.0f / 255.0f, 217.0f / 255.0f, 1.0f));
 
-		im.RotatedRoundedQuad(.(.(100.0f, 100.0f), .(50.0f, 50.0f), .Zero, time), .(.Zero, .One * 2.0f), 10.0f, .Blue);
-		im.RotatedRoundedQuad(.(.(150.0f, 100.0f), .(50.0f, 50.0f), .Zero, time), .(.Zero, .One * 2.0f), 10.0f, .Blue);
+		im.Circle(.(.(200.0f, 100.0f), 100.0f), .(.Zero, .(2.0f, 2.0f)), .Blue);
+		im.Pie(.(.(100.0f, 100.0f), 100.0f), .(0.0f, Math.PI_f * 1.75f), .(.Zero, .(2.0f, 2.0f)), .Blue, 16);
+		im.RotatedPie(.(.(400.0f, 100.0f), 100.0f), Math.PI_f * 0.25f, .(0.0f, Math.PI_f * 1.75f), .(.Zero, .(2.0f, 2.0f)), .Blue, 16);
 
-		//im.Vertex(.(0.0f, 0.0f), .(0.0f, 0.0f), .Red);
-		//im.Vertex(.(32.0f, 0.0f), .(1.0f, 0.0f), .Green);
-		//im.Vertex(.(32.0f, 32.0f), .(1.0f, 1.0f), .Blue);
+		im.RotatedRoundedQuad(.(.(100.0f, 100.0f), .(50.0f, 50.0f), .Zero, time), .(.Zero, .One * 2.0f), 10.0f, .Red);
+		im.RotatedRoundedQuad(.(.(150.0f, 100.0f), .(50.0f, 50.0f), .Zero, time), .(.Zero, .One * 2.0f), 10.0f, .White);
+
+		im.Vertex(.(0.0f, 0.0f), .(0.0f, 0.0f), .Red);
+		im.Vertex(.(32.0f, 0.0f), .(1.0f, 0.0f), .Green);
+		im.Vertex(.(32.0f, 32.0f), .(1.0f, 1.0f), .Blue);
 
 		im.RotatedQuad(.(.(300.0f, 100.0f), .(50.0f, 50.0f), .(25.0f, 25.0f), time), .One, .Red);
 		im.RotatedQuad(.(.(400.0f, 100.0f), .(50.0f, 50.0f), .(25.0f, 25.0f), time), .One, .Red);
-
-		/*
-		im.Circle(.(.(100.0f, 100.0f), 100.0f), .(.Zero, .(2.0f, 2.0f)), .Blue);
-		im.Pie(.(.(100.0f, 100.0f), 100.0f), .(0.0f, Math.PI_f * 1.75f), .(.Zero, .(2.0f, 2.0f)), .Blue, 16);
-		im.RotatedPie(.(.(400.0f, 100.0f), 100.0f), Math.PI_f * 0.25f, .(0.0f, Math.PI_f * 1.75f), .(.Zero, .(2.0f, 2.0f)), .Blue, 16);
-		im.RoundedQuad(.(.(100.0f, 100.0f), .(50.0f, 50.0f)), .One, 10.0f, .Red);
-
-		im.RotatedRoundedQuad(.(.(100.0f, 100.0f), .(50.0f, 50.0f), .Zero, time), .(.Zero, .One * 2.0f), 10.0f, .Blue);
-
-		im.RoundedQuad(.(.(300.0f, 100.0f), .(50.0f, 50.0f)), .One, 10.0f, .Red);
-
-		im.RotatedQuad(.(.(300.0f, 100.0f), .(50.0f, 50.0f), .(25.0f, 25.0f), time), .One, .Red);
-
-		im.RotatedQuad(.(.(100.0f, 100.0f), .(50.0f, 50.0f), .(0.0f, 0.0f), Math.PI_f * 0.25f), .One, .Blue);
-		im.RotatedQuad(.(.(100.0f, 100.0f), .(50.0f, 50.0f), .(25.0f, 25.0f), Math.PI_f * 0.25f), .One, .Red);
-		*/
 
 		im.Flush(driver, smallCanvas, testTexture);
 

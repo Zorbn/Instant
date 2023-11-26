@@ -96,7 +96,9 @@ class Immediate
 	static readonly ShaderImplementation[] Implementations = new .(OpenGLImplementation, DirectXImplementation) ~ delete _;
 
 	Mesh _mesh ~ delete _;
-	Shader _shader ~ delete _;
+	// Only delete shaders that we create.
+	Shader _shader ~ if (!_hasCustomShader) delete _;
+	bool _hasCustomShader;
 
 	float[16] _projectionMatrix;
 
@@ -106,9 +108,18 @@ class Immediate
 	uint32[] _indices ~ delete _;
 	int _indexCount;
 
-	public this(Driver driver, int vertexCapacity = 1024, int indexCapacity = 1024)
+	public this(Driver driver, Shader shader = null, int vertexCapacity = 1024, int indexCapacity = 1024)
 	{
-		_shader = new .(driver, Implementations, scope .(.Matrix), scope .(.Vector2, .Vector2, .Vector4));
+		if (shader == null)
+		{
+			_shader = new .(driver, Implementations, scope .(.Matrix), scope .(.Vector2, .Vector2, .Vector4));
+		}
+		else
+		{
+			_shader = shader;
+			_hasCustomShader = true;
+		}
+
 		_mesh = new .(driver, vertexCapacity, indexCapacity);
 
 		_vertexComponents = new .[vertexCapacity * Mesh.ComponentsPerVertex];
@@ -372,15 +383,17 @@ class Immediate
 		_indices[_indexCount++] = (.)index;
 	}
 
-	// TODO: A resize accidentally wipes any existing vertex/index data.
 	void EnsureCapacity(int vertexCapacity, int indexCapacity)
 	{
 		var newVertexCapacity = _vertexCapacity;
 		while (newVertexCapacity < vertexCapacity) newVertexCapacity *= 2;
 		if (newVertexCapacity != _vertexCapacity)
 		{
+			var newVertexComponents = new float[newVertexCapacity * Mesh.ComponentsPerVertex];
+			_vertexComponents.CopyTo(newVertexComponents);
 			delete _vertexComponents;
-			_vertexComponents = new .[newVertexCapacity * Mesh.ComponentsPerVertex];
+			_vertexComponents = newVertexComponents;
+
 			_vertexCapacity = newVertexCapacity;
 		}
 
@@ -388,8 +401,10 @@ class Immediate
 		while (newIndexCapacity < indexCapacity) newIndexCapacity *= 2;
 		if (newIndexCapacity != _indices.Count)
 		{
+			var newIndices = new uint32[newIndexCapacity];
+			_indices.CopyTo(newIndices);
 			delete _indices;
-			_indices = new .[newIndexCapacity];
+			_indices = newIndices;
 		}
 	}
 }
