@@ -3,9 +3,8 @@
 using System;
 using OpenGL;
 using Instant.OpenGL;
-using internal Instant.Canvas;
-using internal Instant.Texture;
 using internal Instant.Shader;
+using internal Instant.Driver;
 
 namespace Instant;
 
@@ -29,6 +28,8 @@ class Mesh
 #else
 	uint32[] _indices ~ delete _;
 #endif
+
+	int _lastDrawWithShaderId = -1;
 
 	public this(Driver driver, int vertexCapacity, int indexCapacity)
 	{
@@ -63,6 +64,22 @@ class Mesh
 		if (IndexCount == 0) return;
 
 		GL.glBindVertexArray(_vao);
+
+		if (driver.BoundShader != null && _lastDrawWithShaderId != driver.BoundShader.Id)
+		{
+			_lastDrawWithShaderId = driver.BoundShader.Id;
+			let stride = sizeof(float) * (.)driver.BoundShader.VertexLayout.Size;
+
+			for (var i = 0; i < driver.BoundShader.VertexLayout.Elements.Count; i++)
+			{
+				let element = driver.BoundShader.VertexLayout.Elements[i];
+				let floatCount = element.DataType.GetFloatCount();
+				let offset = element.Offset * sizeof(float);
+
+				GL.glEnableVertexAttribArray((.)i);
+				GL.glVertexAttribPointer((.)i, (.)floatCount, .GL_FLOAT, false, stride, (void*)offset);
+			}
+		}
 
 #if BF_PLATFORM_WASM
 		GL.glBindBuffer(.GL_ELEMENT_ARRAY_BUFFER, _indexBuffer);

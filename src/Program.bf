@@ -8,7 +8,7 @@ class Program
 	/*
 	 * TODO:
 	 * Better color blending system like in PxlIO.
-	 * More customizable shaders.
+	 * Fix immediate EnsureCapacity bug.
 	 */
 
 	static SDL2.SDL.Window* window;

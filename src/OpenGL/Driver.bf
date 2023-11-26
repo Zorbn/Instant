@@ -7,6 +7,10 @@ namespace Instant;
 
 class Driver
 {
+	internal Shader BoundShader;
+
+	int _nextShaderId = 0;
+
 	public this(SDL.Window* window)
 	{
 		SDL.GL_CreateContext(window);
@@ -35,6 +39,8 @@ class Driver
 	{
 		SDL.GL_SwapWindow(window);
 	}
+
+	internal int GetNextShaderId() => _nextShaderId++;
 
 	static void GLInit()
 	{

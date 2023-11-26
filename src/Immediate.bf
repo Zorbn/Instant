@@ -4,6 +4,97 @@ namespace Instant;
 
 class Immediate
 {
+	const String OpenGLVertexCode =
+		"""
+		#version 300 es
+		
+		precision highp float;
+		
+		layout(std140) uniform Uniforms
+		{
+			mat4 projectionMatrix;
+		};
+		
+		in vec2 inPosition;
+		in vec2 inTextureCoordinates;
+		in vec4 inColor;
+		
+		out vec2 vertexTextureCoordinates;
+		out vec4 vertexColor;
+		
+		void main()
+		{
+			vertexTextureCoordinates = inTextureCoordinates;
+			vertexColor = inColor;
+			gl_Position = projectionMatrix * vec4(inPosition, 0.0, 1.0);  
+		}
+		""";
+	const String OpenGLFragmentCode =
+		"""
+		#version 300 es
+		
+		precision highp float;
+		
+		uniform sampler2D textureSampler;
+		
+		in vec2 vertexTextureCoordinates;
+		in vec4 vertexColor;
+		
+		layout(location = 0) out vec4 outColor;
+		
+		void main()
+		{
+			vec4 textureColor = texture(textureSampler, vertexTextureCoordinates);
+			outColor = vertexColor * textureColor;
+		}
+		""";
+	static readonly String[] OpenGLVertexAttributes = new .("inPosition", "inTextureCoordinates", "inColors") ~ delete _;
+	static readonly ShaderImplementation OpenGLImplementation = .(.OpenGL, OpenGLVertexCode, OpenGLFragmentCode,
+		OpenGLVertexAttributes, "Uniforms");
+
+	const String DirectXCode =
+		"""
+		cbuffer constants : register(b0)
+		{
+			float4x4 projectionMatrix;
+		};
+		
+		struct VS_Input {
+			float2 pos : POS;
+			float2 uv : TEX;
+			float4 color : COL;
+		};
+		
+		struct VS_Output {
+			float4 pos : SV_POSITION;
+			float2 uv : TEXCOORD;
+			float4 color: COL;
+		};
+		
+		Texture2D _texture : register(t0);
+		SamplerState _sampler : register(s0);
+		
+		VS_Output VsMain(VS_Input input)
+		{
+			VS_Output output;
+			output.pos = mul(projectionMatrix, float4(input.pos, 0.0f, 1.0f));
+			output.uv = input.uv;
+			output.color = input.color;
+			return output;
+		}
+		
+		float4 PsMain(VS_Output input) : SV_Target
+		{
+			float4 textureColor = _texture.Sample(_sampler, float2(input.uv.x, 1.0 - input.uv.y));
+			return textureColor * input.color;   
+		}
+		""";
+	static readonly String[] DirectXVertexAttributes = new .("POS", "TEX", "COL") ~ delete _;
+	static readonly ShaderImplementation DirectXImplementation = .(.DirectX, DirectXCode, DirectXCode,
+		DirectXVertexAttributes, vertexMain: "VsMain", fragmentMain: "PsMain");
+
+	static readonly ShaderImplementation[] Implementations = new .(OpenGLImplementation, DirectXImplementation) ~ delete _;
+
 	Mesh _mesh ~ delete _;
 	Shader _shader ~ delete _;
 
@@ -17,7 +108,7 @@ class Immediate
 
 	public this(Driver driver, int vertexCapacity = 1024, int indexCapacity = 1024)
 	{
-		_shader = new .(driver);
+		_shader = new .(driver, Implementations, scope .(.Matrix), scope .(.Vector2, .Vector2, .Vector4));
 		_mesh = new .(driver, vertexCapacity, indexCapacity);
 
 		_vertexComponents = new .[vertexCapacity * Mesh.ComponentsPerVertex];
@@ -32,7 +123,7 @@ class Immediate
 
 		_shader.Bind(driver);
 		Matrix.MatrixOrtho(ref _projectionMatrix, 0.0f, canvas.Width, 0.0f, canvas.Height, float.MinValue, float.MaxValue);
-		_shader.SetProjectionMatrix(driver, ref _projectionMatrix);
+		_shader.SetUniformData(driver, 0, _projectionMatrix);
 
 		let needsMeshResize = _mesh.VertexCapacity < _vertexCapacity || _mesh.IndexCapacity < _indices.Count;
 		if (needsMeshResize)
