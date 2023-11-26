@@ -29,10 +29,10 @@ class Shader
 			float4 color: COL;
 		};
 
-		Texture2D mytexture : register(t0);
-		SamplerState mysampler : register(s0);
+		Texture2D _texture : register(t0);
+		SamplerState _sampler : register(s0);
 
-		VS_Output vs_main(VS_Input input)
+		VS_Output VsMain(VS_Input input)
 		{
 			VS_Output output;
 			output.pos = mul(projectionMatrix, float4(input.pos, 0.0f, 1.0f));
@@ -41,9 +41,9 @@ class Shader
 			return output;
 		}
 
-		float4 ps_main(VS_Output input) : SV_Target
+		float4 PsMain(VS_Output input) : SV_Target
 		{
-			float4 textureColor = mytexture.Sample(mysampler, float2(input.uv.x, 1.0 - input.uv.y));
+			float4 textureColor = _texture.Sample(_sampler, float2(input.uv.x, 1.0 - input.uv.y));
 			return textureColor * input.color;   
 		}
 		""";
@@ -57,11 +57,11 @@ class Shader
 
 	public this(Driver driver)
 	{
-		ID3DBlob* vertexShaderBlob = DXHelper.CreateShaderBlob(Code, "Vertex Shader", "vs_main", "vs_5_0");
+		ID3DBlob* vertexShaderBlob = DXHelper.CreateShaderBlob(Code, "Vertex Shader", "VsMain", "vs_5_0");
 		var result = driver.Device.CreateVertexShader(vertexShaderBlob.GetBufferPointer(), vertexShaderBlob.GetBufferSize(), null, &_vertexShader);
 		Runtime.Assert(result == 0);
 
-		ID3DBlob* pixelShaderBlob = DXHelper.CreateShaderBlob(Code, "Pixel Shader", "ps_main", "ps_5_0");
+		ID3DBlob* pixelShaderBlob = DXHelper.CreateShaderBlob(Code, "Pixel Shader", "PsMain", "ps_5_0");
 		result = driver.Device.CreatePixelShader(pixelShaderBlob.GetBufferPointer(), pixelShaderBlob.GetBufferSize(), null, &_pixelShader);
 		Runtime.Assert(result == 0);
 		pixelShaderBlob.Release();

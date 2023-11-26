@@ -7,13 +7,8 @@ class Program
 {
 	/*
 	 * TODO:
-	 * Simplify the backend-specific code as much as possible, ie: mesh shouldn't be backend-specific.
-	 * Immediate shouldn't mess with GPU resources except when about to draw, in normal functions it should just use CPU arrays.
-	 * Create interfaces for backend specific resources to help keep them in sync.
-	 * General cleanup.
-	 * Make sure OpenGL and DX have parity.
-	 * Consider if driver should be passed around like it is now.
 	 * Better color blending system like in PxlIO.
+	 * More customizable shaders.
 	 */
 
 	static SDL2.SDL.Window* window;
@@ -36,10 +31,7 @@ class Program
 	[CLink, CallingConvention(.Stdcall)]
 	private static extern void emscripten_set_main_loop(em_callback_func func, int32 fps, int32 simulateInfinteLoop);
 
-	private static void EmscriptenMainLoop()
-	{
-		Frame();
-	}
+	private static void EmscriptenMainLoop() => Frame();
 #endif
 
 	public static void Main()

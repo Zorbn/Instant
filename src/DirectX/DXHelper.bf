@@ -16,7 +16,7 @@ static class DXHelper
 			(.)entrypoint, (.)target, 0, 0, out shaderBlob, &shaderCompileErrorBlob);
 		if (result != 0)
 		{
-			Span<char8> errorString = .((char8*)shaderCompileErrorBlob.GetBufferPointer(), (.)shaderCompileErrorBlob.GetBufferSize());
+			String errorString = scope .((char8*)shaderCompileErrorBlob.GetBufferPointer(), (.)shaderCompileErrorBlob.GetBufferSize());
 			Runtime.FatalError(scope $"Failed to compile shader: {errorString}");
 		}
 
