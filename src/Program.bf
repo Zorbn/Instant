@@ -113,6 +113,25 @@ class Program
 		im.RotatedQuad(.(.(300.0f, 100.0f), .(50.0f, 50.0f), .(25.0f, 25.0f), time), .One, .Red);
 		im.RotatedQuad(.(.(400.0f, 100.0f), .(50.0f, 50.0f), .(25.0f, 25.0f), time), .One, .Red);
 
+		im.Line(.(10.0f, 10.0f), .(630.0f, 470.0f), 10.0f, .Zero, .White);
+		im.Path(.(scope .(.(10.0f, 10.0f), .(100.0f, 100.0f), .(200.0f, 100.0f), .(250.0f, 300.0f), .(50.0f, 250.0f))), 20.0f, .One, .White);
+		{
+			let points = scope Vector2[18];
+
+			let angleStep = Math.PI_f * 2.0f / 16;
+
+			for (var i = 0; i <= 17; i++)
+			{
+				var angle = angleStep * i;
+
+				let x = 250.0f + Math.Cos(angle) * 100.0f;
+				let y = 250.0f + Math.Sin(angle) * 100.0f;
+				points[i] = .(x, y);
+			}
+
+			im.Path(points, 20.0f, .One, .Green);
+		}
+
 		im.Flush(driver, smallCanvas, testTexture);
 
 		im.Quad(.(.Zero, .(screenCanvas.Width, screenCanvas.Height)), .One, .White);

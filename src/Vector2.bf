@@ -9,12 +9,14 @@ struct Vector2
 	public float X;
 	public float Y;
 	public float Magnitude => Math.Sqrt(X * X + Y * Y);
+	public Vector2 Perpendicular => .(-Y, X);
+	public Vector2 Abs => .(Math.Abs(X), Math.Abs(Y));
 	public Vector2 Normalized
 	{
 		get
 		{
-			float magnitude = Magnitude;
-			return .(X / magnitude, Y / magnitude);
+			float inverseMagnitude = 1.0f / Magnitude;
+			return .(X * inverseMagnitude, Y * inverseMagnitude);
 		}
 	};
 
@@ -32,6 +34,11 @@ struct Vector2
 	public static Vector2 operator -(Vector2 a, Vector2 b)
 	{
 		return .(a.X - b.X, a.Y - b.Y);
+	}
+
+	public static Vector2 operator -(Vector2 a)
+	{
+		return .(-a.X, -a.Y);
 	}
 
 	public static Vector2 operator *(Vector2 a, Vector2 b)
@@ -69,5 +76,13 @@ struct Vector2
 		let rotatedY = rectangle.Pivot.Y + relativeX * sin + relativeY * cos;
 
 		return .(rotatedX, rotatedY);
+	}
+
+	public float DistanceTo(Vector2 other)
+	{
+		let distanceX = X - other.X;
+		let distanceY = Y - other.Y;
+
+		return Math.Sqrt(distanceX * distanceX + distanceY * distanceY);
 	}
 }

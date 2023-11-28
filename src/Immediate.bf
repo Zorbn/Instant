@@ -358,9 +358,62 @@ class Immediate
 		RotatedPie(circle, 0.0f, bounds, source, color, stepCount);
 	}
 
+	[Inline]
+	public void Line(Vector2 from, Vector2 to, float width, Rectangle source, Color color)
+	{
+		Vector2[] points = scope .(from, to);
+		Path(.(points), width, source, color);
+	}
+
+	public void Path(Span<Vector2> points, float width, Rectangle source, Color color)
+	{
+		let halfWidth = width * 0.5f;
+
+		for (var i = 1; i < points.Length; i++)
+		{
+			let to = points[i];
+			let from = points[i - 1];
+			let direction = (to - from).Normalized;
+
+			Vector2 lastDirection = direction;
+			Vector2 nextDirection = direction;
+
+			if (i > 1)
+			{
+				lastDirection = (from - points[i - 2]).Normalized;
+			}
+
+			if (i < points.Length - 1)
+			{
+				nextDirection = (points[i + 1] - to).Normalized;
+			}
+
+			let fromOffset = ((lastDirection + direction) * 0.5f).Normalized.Perpendicular * halfWidth;
+			let fromBottom = from - fromOffset;
+			let fromTop = from + fromOffset;
+
+			let toOffset = ((nextDirection + direction) * 0.5f).Normalized.Perpendicular * halfWidth;
+			let toBottom = to - toOffset;
+			let toTop = to + toOffset;
+
+			RawIndex(_vertexCount);
+			RawIndex(_vertexCount + 1);
+			RawIndex(_vertexCount + 2);
+
+			RawIndex(_vertexCount);
+			RawIndex(_vertexCount + 2);
+			RawIndex(_vertexCount + 3);
+
+			RawVertex(fromBottom, source.BottomLeft, color);
+			RawVertex(toBottom, source.BottomRight, color);
+			RawVertex(toTop, source.TopRight, color);
+			RawVertex(fromTop, source.TopLeft, color);
+		}
+	}
+
 	// Add a vertex that isn't paired with an index, and without ensuring capacity.
 	[Inline]
-	void RawVertex(Vector2 position, Vector2 uv, Color color)
+	public void RawVertex(Vector2 position, Vector2 uv, Color color)
 	{
 		int baseIndex = _vertexCount * Mesh.ComponentsPerVertex;
 
@@ -378,12 +431,12 @@ class Immediate
 
 	// Add an index that isn't paired with a vertex, and without ensuring capacity.
 	[Inline]
-	void RawIndex(int index)
+	public void RawIndex(int index)
 	{
 		_indices[_indexCount++] = (.)index;
 	}
 
-	void EnsureCapacity(int vertexCapacity, int indexCapacity)
+	public void EnsureCapacity(int vertexCapacity, int indexCapacity)
 	{
 		var newVertexCapacity = _vertexCapacity;
 		while (newVertexCapacity < vertexCapacity) newVertexCapacity *= 2;
