@@ -1,5 +1,5 @@
 build/
 recovery/
-dist/
+Examples/dist/
 
 BeefSpace_User.toml

@@ -1,0 +1,14 @@
+FileVersion = 1
+Dependencies = {corlib = "*", Instant = "*"}
+
+[Project]
+Name = "Examples"
+StartupObject = "Examples.Program"
+
+[Configs.Debug.wasm32]
+TargetDirectory = "$(ProjectDir)\\dist\\"
+OtherLinkFlags = "$(LinkFlags) -sUSE_WEBGL2=1 -sMIN_WEBGL_VERSION=2 -sMAX_WEBGL_VERSION=2 -sUSE_SDL=2 -sUSE_SDL_IMAGE=2 -sUSE_SDL_MIXER=2 -sUSE_SDL_TTF=2 --use-preload-plugins -sINITIAL_MEMORY=67108864 -sALLOW_MEMORY_GROWTH=1 -sASSERTIONS=1 -s SAFE_HEAP=0"
+
+[Configs.Release.wasm32]
+TargetDirectory = "$(ProjectDir)\\dist\\"
+OtherLinkFlags = "$(LinkFlags) -sUSE_WEBGL2=1 -sMIN_WEBGL_VERSION=2 -sMAX_WEBGL_VERSION=2 -sUSE_SDL=2 -sUSE_SDL_IMAGE=2 -sUSE_SDL_MIXER=2 -sUSE_SDL_TTF=2 --use-preload-plugins -sINITIAL_MEMORY=67108864 -sALLOW_MEMORY_GROWTH=1 -sASSERTIONS=1 -s SAFE_HEAP=0"

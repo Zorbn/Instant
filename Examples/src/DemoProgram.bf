@@ -1,9 +1,10 @@
 using System;
 using System.Diagnostics;
+using Instant;
 
-namespace Instant;
+namespace Examples;
 
-class Program
+class DemoProgram
 {
 	static SDL2.SDL.Window* window;
 	static Driver driver;
@@ -28,7 +29,7 @@ class Program
 	private static void EmscriptenMainLoop() => Frame();
 #endif
 
-	public static void Main()
+	public static void DemoMain()
 	{
 		Console.WriteLine("Hello, World!");
 
@@ -44,8 +45,8 @@ class Program
 		screenCanvas = new Canvas(driver, window);
 		smallCanvas = scope Canvas(driver, 640, 480);
 
-		var testImage = scope Image("Test.png");
-		testTexture = scope Texture(driver, testImage.Width, testImage.Height, .Pixelated, .(testImage.Pixels));
+		testTexture = scope Texture(driver, 2, 2, .Pixelated,
+			.(scope .(255, 255, 255, 255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 255, 255)));
 
 		stopwatch.Start();
 

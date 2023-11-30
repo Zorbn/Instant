@@ -1,8 +1,8 @@
 FileVersion = 1
-Projects = {Instant = {Path = "."}, SDL2 = "*"}
+Projects = {Instant = {Path = "."}, SDL2 = "*", Examples = {Path = "Examples"}}
 
 [Workspace]
-StartupProject = "Instant"
+StartupProject = "Examples"
 
 [Configs.Debug.wasm32]
 AllocType = "CRT"
