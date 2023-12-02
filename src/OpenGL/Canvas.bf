@@ -9,23 +9,20 @@ namespace Instant;
 
 class Canvas
 {
-	public int Width { get; private set; }
-	public int Height { get; private set; }
-
+	public Point2 Size { get; private set; }
 	public Texture Texture { get; private set; } ~ delete _;
 
 	uint32 _framebuffer ~ GL.glDeleteFramebuffers(1, &_);
 
-	public this(Driver driver, int width, int height)
+	public this(Driver driver, Point2 size)
 	{
-		Width = width;
-		Height = height;
+		Size = size;
 
 		uint32 framebuffer = 0;
 		GL.glGenFramebuffers(1, &framebuffer);
 		_framebuffer = framebuffer;
 
-		Texture = new .(driver, width, height, .Pixelated, null);
+		Texture = new .(driver, size, .Pixelated, null);
 
 		GL.glBindFramebuffer(.GL_FRAMEBUFFER, _framebuffer);
 		GL.glFramebufferTexture2D(.GL_FRAMEBUFFER, .GL_COLOR_ATTACHMENT0, .GL_TEXTURE_2D, Texture.GLTexture, 0);
@@ -41,15 +38,13 @@ class Canvas
 
 		int32 width, height;
 		SDL.GL_GetDrawableSize(window, out width, out height);
-
-		Width = width;
-		Height = height;
+		Size = .(width, height);
 	}
 
 	public void Clear(Driver driver, Color color)
 	{
 		GL.glBindFramebuffer(.GL_FRAMEBUFFER, _framebuffer);
-		GL.glViewport(0, 0, (.)Width, (.)Height);
+		GL.glViewport(0, 0, (.)Size.X, (.)Size.Y);
 
 		GL.glClearColor(color.R, color.G, color.B, color.A);
 		GL.glClear(.GL_COLOR_BUFFER_BIT);
@@ -58,7 +53,7 @@ class Canvas
 	public void Bind(Driver driver)
 	{
 		GL.glBindFramebuffer(.GL_FRAMEBUFFER, _framebuffer);
-		GL.glViewport(0, 0, (.)Width, (.)Height);
+		GL.glViewport(0, 0, (.)Size.X, (.)Size.Y);
 	}
 }
 

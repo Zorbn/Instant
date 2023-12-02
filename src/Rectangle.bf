@@ -19,4 +19,14 @@ struct Rectangle
 		Position = position;
 		Size = size;
 	}
+
+	public static Rectangle operator *(Rectangle rectangle, Vector2 vector)
+	{
+		var result = rectangle;
+
+		result.Position = rectangle.Position * vector;
+		result.Size = rectangle.Size * vector;
+
+		return rectangle;
+	}
 }

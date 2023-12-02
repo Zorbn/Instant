@@ -21,7 +21,7 @@ class Texture
 	ID3D11ShaderResourceView* _textureView ~ _.Release();
 	ID3D11SamplerState* _samplerState ~ _.Release();
 
-	public this(Driver driver, int width, int height, Filter filter, Span<uint8>? pixels)
+	public this(Driver driver, Point2 size, Filter filter, Span<uint8>? pixels)
 	{
 		D3D11_FILTER dxFilter;
 		switch (filter)
@@ -43,8 +43,8 @@ class Texture
 		driver.Device.CreateSamplerState(samplerDescriptor, &_samplerState);
 
 		D3D11_TEXTURE2D_DESC textureDescriptor = .();
-		textureDescriptor.Width = (.)width;
-		textureDescriptor.Height = (.)height;
+		textureDescriptor.Width = (.)size.X;
+		textureDescriptor.Height = (.)size.Y;
 		textureDescriptor.MipLevels = 1;
 		textureDescriptor.ArraySize = 1;
 		textureDescriptor.Format = .B8G8R8A8_UNORM;
@@ -61,7 +61,7 @@ class Texture
 			textureDescriptor.BindFlags = .SHADER_RESOURCE;
 
 			textureSubResourceData.pSysMem = &pixels.Value[0];
-			textureSubResourceData.SysMemPitch = (.)width * Instant.Image.PixelComponentCount;
+			textureSubResourceData.SysMemPitch = (.)size.X * Instant.Image.PixelComponentCount;
 			textureSubResourceDataPointer = &textureSubResourceData;
 		}
 

@@ -10,20 +10,18 @@ namespace Instant;
 
 class Canvas
 {
-	public int Width { get; private set; }
-	public int Height { get; private set; }
+	public Point2 Size { get; private set; }
 	public Texture Texture ~ delete _;
 
 	int _id;
 	ID3D11RenderTargetView* _renderTargetView ~ _.Release();
 
-	public this(Driver driver, int width, int height)
+	public this(Driver driver, Point2 size)
 	{
-		Width = width;
-		Height = height;
+		Size = size;
 
 		_id = driver.GetNextCanvasId();
-		Texture = new .(driver, width, height, .Pixelated, null);
+		Texture = new .(driver, size, .Pixelated, null);
 		Texture.CanvasId = _id;
 
 		D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDescriptor = .();
@@ -39,9 +37,7 @@ class Canvas
 	{
 		int32 width, height;
 		SDL.GL_GetDrawableSize(window, out width, out height);
-
-		Width = width;
-		Height = height;
+		Size = .(width, height);
 
 		_id = driver.GetNextCanvasId();
 
@@ -78,8 +74,8 @@ class Canvas
 		D3D11_VIEWPORT viewport = .();
 		viewport.TopLeftX = 0;
 		viewport.TopLeftY = 0;
-		viewport.Width = Width;
-		viewport.Height = Height;
+		viewport.Width = Size.X;
+		viewport.Height = Size.Y;
 		viewport.MinDepth = 0.0f;
 		viewport.MaxDepth = 1.0f;
 		driver.DeviceContext.RSSetViewports(1, &viewport);

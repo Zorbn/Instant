@@ -15,7 +15,7 @@ class Texture
 
 	internal uint32 GLTexture { get; private set; } ~ GL.glDeleteTextures(1, &_);
 
-	public this(Driver driver, int width, int height, Filter filter, Span<uint8>? pixels)
+	public this(Driver driver, Point2 size, Filter filter, Span<uint8>? pixels)
 	{
 		uint32 texture = 0;
 		GL.glGenTextures(1, &texture);
@@ -36,13 +36,13 @@ class Texture
 
 		if (pixels != null)
 		{
-			Image.FlipRows(width, height, pixels.Value);
-			GL.glTexImage2D(.GL_TEXTURE_2D, 0, .GL_RGBA, (.)width, (.)height, 0, .GL_RGBA, .GL_UNSIGNED_BYTE, &pixels.Value[0]);
-			Image.FlipRows(width, height, pixels.Value);
+			Image.FlipRows(size, pixels.Value);
+			GL.glTexImage2D(.GL_TEXTURE_2D, 0, .GL_RGBA, (.)size.X, (.)size.Y, 0, .GL_RGBA, .GL_UNSIGNED_BYTE, &pixels.Value[0]);
+			Image.FlipRows(size, pixels.Value);
 		}
 		else
 		{
-			GL.glTexImage2D(.GL_TEXTURE_2D, 0, .GL_RGBA, (.)width, (.)height, 0, .GL_RGBA, .GL_UNSIGNED_BYTE, null);
+			GL.glTexImage2D(.GL_TEXTURE_2D, 0, .GL_RGBA, (.)size.X, (.)size.Y, 0, .GL_RGBA, .GL_UNSIGNED_BYTE, null);
 		}
 
 		GL.glTexParameteri(.GL_TEXTURE_2D, .GL_TEXTURE_WRAP_S, (.)GL.TextureWrapMode.GL_REPEAT);

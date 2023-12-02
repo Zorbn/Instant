@@ -7,8 +7,7 @@ class Image
 {
 	public const int PixelComponentCount = 4;
 
-	public int Width;
-	public int Height;
+	public Point2 Size;
 	public uint8[] Pixels ~ delete _;
 
 	public this(String path)
@@ -20,9 +19,9 @@ class Image
 			Runtime.FatalError(scope $"Failed to load image: {path}");
 		}
 
-		Width = loadedSurface.w;
-		Height = loadedSurface.h;
-		Pixels = new uint8[Width * Height * 4];
+		Size.X = loadedSurface.w;
+		Size.Y = loadedSurface.h;
+		Pixels = new uint8[Size.X * Size.Y * PixelComponentCount];
 
 		let result = SDL.ConvertPixels(loadedSurface.w, loadedSurface.h, loadedSurface.format.format,
 			loadedSurface.pixels, loadedSurface.pitch, SDL.PIXELFORMAT_ABGR8888, &Pixels[0], loadedSurface.w * 4);
@@ -34,15 +33,15 @@ class Image
 		}
 	}
 
-	public static void FlipRows(int width, int height, Span<uint8> pixels)
+	public static void FlipRows(Point2 size, Span<uint8> pixels)
 	{
 		const int bufferSize = 2048;
 		uint8[bufferSize] buffer = ?; // Used as temporary storage when swapping chunks of rows.
-		let widthInComponents = width * PixelComponentCount;
+		let widthInComponents = size.X * PixelComponentCount;
 
-		for (var y = 0; y < height / 2; y++)
+		for (var y = 0; y < size.Y / 2; y++)
 		{
-			let otherY = height - 1 - y;
+			let otherY = size.Y - 1 - y;
 			for (var xComponent = 0; xComponent < widthInComponents; xComponent += bufferSize)
 			{
 				let sourceOffset = xComponent + y * widthInComponents;

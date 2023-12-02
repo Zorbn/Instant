@@ -20,4 +20,12 @@ struct Color
 		B = b;
 		A = a;
 	}
+
+	public this(uint8 r, uint8 g, uint8 b, uint8 a)
+	{
+		R = r / 255.0f;
+		G = g / 255.0f;
+		B = b / 255.0f;
+		A = a / 255.0f;
+	}
 }

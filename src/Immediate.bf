@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 
 namespace Instant;
 
@@ -95,12 +96,15 @@ class Immediate
 
 	static readonly ShaderImplementation[] Implementations = new .(OpenGLImplementation, DirectXImplementation) ~ delete _;
 
+	Matrix _transformation = .Identity;
+	List<Matrix> _transformationStack;
+
 	Mesh _mesh ~ delete _;
 	// Only delete shaders that we create.
 	Shader _shader ~ if (!_hasCustomShader) delete _;
 	bool _hasCustomShader;
 
-	float[16] _projectionMatrix;
+	Matrix _projectionMatrix;
 
 	float[] _vertexComponents ~ delete _;
 	int _vertexCount;
@@ -133,8 +137,8 @@ class Immediate
 		canvas.Bind(driver);
 
 		_shader.Bind(driver);
-		Matrix.MatrixOrtho(ref _projectionMatrix, 0.0f, canvas.Width, 0.0f, canvas.Height, float.MinValue, float.MaxValue);
-		_shader.SetUniformData(driver, 0, _projectionMatrix);
+		_projectionMatrix = Matrix.Ortho(0.0f, canvas.Size.X, 0.0f, canvas.Size.Y, float.MinValue, float.MaxValue);
+		_shader.SetUniformData(driver, 0, _projectionMatrix.Components);
 
 		let needsMeshResize = _mesh.VertexCapacity < _vertexCapacity || _mesh.IndexCapacity < _indices.Count;
 		if (needsMeshResize)
@@ -151,6 +155,7 @@ class Immediate
 
 	public void Clear()
 	{
+		Origin();
 		_vertexCount = 0;
 		_indexCount = 0;
 	}
@@ -417,6 +422,9 @@ class Immediate
 	{
 		int baseIndex = _vertexCount * Mesh.ComponentsPerVertex;
 
+		var position;
+		position = _transformation * position;
+
 		_vertexComponents[baseIndex] = position.X;
 		_vertexComponents[baseIndex + 1] = position.Y;
 		_vertexComponents[baseIndex + 2] = uv.X;
@@ -460,4 +468,20 @@ class Immediate
 			_indices = newIndices;
 		}
 	}
+
+	public void Push() => _transformationStack.Add(_transformation);
+	public void Pop()
+	{
+		if (_transformationStack.IsEmpty)
+		{
+			Origin();
+			return;
+		}
+
+		_transformation = _transformationStack.PopBack();
+	}
+	public void Translate(Vector2 translation) => _transformation.Translated(translation);
+	public void Scale(Vector2 scale) => _transformation = _transformation.Scaled(scale);
+	public void Rotate(float rotation) => _transformation = _transformation.Rotated(rotation);
+	public void Origin() => _transformation = .Identity;
 }

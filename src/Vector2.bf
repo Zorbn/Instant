@@ -1,4 +1,5 @@
 using System;
+
 namespace Instant;
 
 struct Vector2
@@ -26,31 +27,19 @@ struct Vector2
 		Y = y;
 	}
 
-	public static Vector2 operator +(Vector2 a, Vector2 b)
+	public this(Point2 point)
 	{
-		return .(a.X + b.X, a.Y + b.Y);
+		X = (.)point.X;
+		Y = (.)point.Y;
 	}
 
-	public static Vector2 operator -(Vector2 a, Vector2 b)
-	{
-		return .(a.X - b.X, a.Y - b.Y);
-	}
-
-	public static Vector2 operator -(Vector2 a)
-	{
-		return .(-a.X, -a.Y);
-	}
-
-	public static Vector2 operator *(Vector2 a, Vector2 b)
-	{
-		return .(a.X * b.X, a.Y * b.Y);
-	}
-
-	[Commutable]
-	public static Vector2 operator *(Vector2 a, float b)
-	{
-		return .(a.X * b, a.Y * b);
-	}
+	public static Vector2 operator +(Vector2 a, Vector2 b) => .(a.X + b.X, a.Y + b.Y);
+	public static Vector2 operator -(Vector2 a, Vector2 b) => .(a.X - b.X, a.Y - b.Y);
+	public static Vector2 operator -(Vector2 a) => .(-a.X, -a.Y);
+	public static Vector2 operator *(Vector2 a, Vector2 b) => .(a.X * b.X, a.Y * b.Y);
+	[Commutable] public static Vector2 operator *(Vector2 a, float b) => .(a.X * b, a.Y * b);
+	public static Vector2 operator /(Vector2 a, float b) => .(a.X / b, a.Y / b);
+	public static Vector2 operator /(Vector2 a, Vector2 b) => .(a.X / b.X, a.Y / b.Y);
 
 	public Vector2 RotatedAround(Vector2 pivot, float rotation)
 	{

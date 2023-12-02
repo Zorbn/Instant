@@ -38,7 +38,7 @@ class FlappyProgram
 		driver = scope .(window);
 		canvas = scope .(driver, window);
 		im = scope .(driver);
-		blankTexture = scope .(driver, 1, 1, .Pixelated, .(scope .(255, 255, 255, 255)));
+		blankTexture = scope .(driver, .(1, 1), .Pixelated, .(scope .(255, 255, 255, 255)));
 
 		stopwatch = scope .();
 		stopwatch.Start();

@@ -43,9 +43,9 @@ class DemoProgram
 		time = 0.0f;
 
 		screenCanvas = new Canvas(driver, window);
-		smallCanvas = scope Canvas(driver, 640, 480);
+		smallCanvas = scope Canvas(driver, .(640, 480));
 
-		testTexture = scope Texture(driver, 2, 2, .Pixelated,
+		testTexture = scope Texture(driver, .(2, 2), .Pixelated,
 			.(scope .(255, 255, 255, 255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 255, 255)));
 
 		stopwatch.Start();
@@ -135,7 +135,7 @@ class DemoProgram
 
 		im.Flush(driver, smallCanvas, testTexture);
 
-		im.Quad(.(.Zero, .(screenCanvas.Width, screenCanvas.Height)), .One, .White);
+		im.Quad(.(.Zero, .(screenCanvas.Size)), .One, .White);
 
 		im.Flush(driver, screenCanvas, smallCanvas.Texture);
 
