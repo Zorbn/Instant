@@ -2,8 +2,8 @@ namespace Instant;
 
 struct RotatedRectangle
 {
-	public const RotatedRectangle Zero = .(.Zero, .Zero, 0.0f);
-	public const RotatedRectangle One = .(.Zero, .One, 0.0f);
+	public const RotatedRectangle Zero = RotatedRectangle(.Zero, .Zero, 0.0f);
+	public const RotatedRectangle One = RotatedRectangle(.Zero, .One, 0.0f);
 
 	public Vector2 Position;
 	public Vector2 Size;
