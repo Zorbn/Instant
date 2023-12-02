@@ -39,6 +39,7 @@ struct Point2
 	public static Point2 operator *(Point2 a, Point2 b) => .(a.X * b.X, a.Y * b.Y);
 	[Commutable] public static Point2 operator *(Point2 a, int b) => .(a.X * b, a.Y * b);
 	public static Point2 operator /(Point2 a, int b) => .(a.X / b, a.Y / b);
+	public static Point2 operator /(int a, Point2 b) => .(a / b.X, a / b.Y);
 	public static Point2 operator /(Point2 a, Point2 b) => .(a.X / b.X, a.Y / b.Y);
 
 	public float DistanceTo(Vector2 other)

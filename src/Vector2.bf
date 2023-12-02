@@ -39,6 +39,7 @@ struct Vector2
 	public static Vector2 operator *(Vector2 a, Vector2 b) => .(a.X * b.X, a.Y * b.Y);
 	[Commutable] public static Vector2 operator *(Vector2 a, float b) => .(a.X * b, a.Y * b);
 	public static Vector2 operator /(Vector2 a, float b) => .(a.X / b, a.Y / b);
+	public static Vector2 operator /(float a, Vector2 b) => .(a / b.X, a / b.Y);
 	public static Vector2 operator /(Vector2 a, Vector2 b) => .(a.X / b.X, a.Y / b.Y);
 
 	public Vector2 RotatedAround(Vector2 pivot, float rotation)
