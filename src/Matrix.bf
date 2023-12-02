@@ -4,8 +4,8 @@ namespace Instant;
 
 struct Matrix
 {
-	public const Matrix Zero = .();
-	public const Matrix Identity = .(.(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f));
+	public const Matrix Zero = Matrix();
+	public const Matrix Identity = Matrix(.(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f));
 
 	public float[16] Components;
 
