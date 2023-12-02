@@ -480,7 +480,7 @@ class Immediate
 
 		_transformation = _transformationStack.PopBack();
 	}
-	public void Translate(Vector2 translation) => _transformation.Translated(translation);
+	public void Translate(Vector2 translation) => _transformation = _transformation.Translated(translation);
 	public void Scale(Vector2 scale) => _transformation = _transformation.Scaled(scale);
 	public void Rotate(float rotation) => _transformation = _transformation.Rotated(rotation);
 	public void Origin() => _transformation = .Identity;
