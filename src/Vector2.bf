@@ -4,8 +4,8 @@ namespace Instant;
 
 struct Vector2
 {
-	public const Vector2 Zero = Vector2(0.0f, 0.0f);
-	public const Vector2 One = Vector2(1.0f, 1.0f);
+	public static readonly Vector2 Zero = .(0.0f, 0.0f);
+	public static readonly Vector2 One = .(1.0f, 1.0f);
 
 	public float X;
 	public float Y;

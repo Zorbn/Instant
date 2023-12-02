@@ -2,8 +2,8 @@ namespace Instant;
 
 struct Rectangle
 {
-	public const Rectangle Zero = Rectangle(.Zero, .Zero);
-	public const Rectangle One = Rectangle(.Zero, .One);
+	public static readonly Rectangle Zero = .(.Zero, .Zero);
+	public static readonly Rectangle One = .(.Zero, .One);
 
 	public Vector2 Position;
 	public Vector2 Size;

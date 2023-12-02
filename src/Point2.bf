@@ -4,8 +4,8 @@ namespace Instant;
 
 struct Point2
 {
-	public const Point2 Zero = Point2(0, 0);
-	public const Point2 One = Point2(1, 1);
+	public static readonly Point2 Zero = .(0, 0);
+	public static readonly Point2 One = .(1, 1);
 
 	public int X;
 	public int Y;

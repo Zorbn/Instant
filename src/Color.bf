@@ -2,11 +2,11 @@ namespace Instant;
 
 struct Color
 {
-	public const Color White = .(1.0f, 1.0f, 1.0f, 1.0f);
-	public const Color Red = .(1.0f, 0.0f, 0.0f, 1.0f);
-	public const Color Green = .(0.0f, 1.0f, 0.0f, 1.0f);
-	public const Color Blue = .(0.0f, 0.0f, 1.0f, 1.0f);
-	public const Color Black = .(0.0f, 0.0f, 0.0f, 1.0f);
+	public static readonly Color White = .(1.0f, 1.0f, 1.0f, 1.0f);
+	public static readonly Color Red = .(1.0f, 0.0f, 0.0f, 1.0f);
+	public static readonly Color Green = .(0.0f, 1.0f, 0.0f, 1.0f);
+	public static readonly Color Blue = .(0.0f, 0.0f, 1.0f, 1.0f);
+	public static readonly Color Black = .(0.0f, 0.0f, 0.0f, 1.0f);
 
 	public float R;
 	public float G;
