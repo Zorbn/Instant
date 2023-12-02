@@ -27,6 +27,6 @@ struct Rectangle
 		result.Position = rectangle.Position * vector;
 		result.Size = rectangle.Size * vector;
 
-		return rectangle;
+		return result;
 	}
 }

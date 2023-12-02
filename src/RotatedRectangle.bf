@@ -29,4 +29,14 @@ struct RotatedRectangle
 	public this(Rectangle rectangle, Vector2 pivot, float rotation) : this(rectangle.Position, rectangle.Size, pivot, rotation)
 	{
 	}
+
+	public static RotatedRectangle operator *(RotatedRectangle rectangle, Vector2 vector)
+	{
+		var result = rectangle;
+
+		result.Position = rectangle.Position * vector;
+		result.Size = rectangle.Size * vector;
+
+		return result;
+	}
 }
