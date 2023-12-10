@@ -16,7 +16,7 @@ struct Vector2
 	{
 		get
 		{
-			float inverseMagnitude = 1.0f / Magnitude;
+			let inverseMagnitude = 1.0f / Magnitude;
 			return .(X * inverseMagnitude, Y * inverseMagnitude);
 		}
 	};

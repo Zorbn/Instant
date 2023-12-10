@@ -243,7 +243,7 @@ class Immediate
 		let horizontalRectangleBottomLeftVertex = _vertexCount + 1;
 		Vector2 bottomLeftPosition = destination.BottomLeft + Vector2(radius, radius).RotatedAround(destination);
 		Rectangle bottomLeftSource = .(source.BottomLeft, cornerSourceSize);
-		RotatedPie(.(bottomLeftPosition, radius), destination.Rotation, .(Math.PI_f, Math.PI_f * 1.5f), bottomLeftSource, color, stepCount);
+		RotatedArc(.(bottomLeftPosition, radius), destination.Rotation, .(Math.PI_f, Math.PI_f * 1.5f), bottomLeftSource, color, stepCount);
 		let verticalRectangleBottomLeftVertex = _vertexCount - 1;
 
 		// Bottom right corner:
@@ -251,7 +251,7 @@ class Immediate
 		let verticalRectangleBottomRightVertex = _vertexCount + 1;
 		Vector2 bottomRightPosition = destination.BottomRight + Vector2(-radius, radius).RotatedAround(destination);
 		Rectangle bottomRightSource = .(source.BottomRight + .(-uDiameter, 0.0f), cornerSourceSize);
-		RotatedPie(.(bottomRightPosition, radius), destination.Rotation, .(Math.PI_f * 1.5f, Math.PI_f * 2.0f), bottomRightSource, color, stepCount);
+		RotatedArc(.(bottomRightPosition, radius), destination.Rotation, .(Math.PI_f * 1.5f, Math.PI_f * 2.0f), bottomRightSource, color, stepCount);
 		let horizontalRectangleBottomRightVertex = _vertexCount - 1;
 
 		// Top right corner:
@@ -259,7 +259,7 @@ class Immediate
 		let horizontalRectangleTopRightVertex = _vertexCount + 1;
 		Vector2 topRightPosition = destination.TopRight + Vector2(-radius, -radius).RotatedAround(destination);
 		Rectangle topRightSource = .(source.TopRight + .(-uDiameter, -vDiameter), cornerSourceSize);
-		RotatedPie(.(topRightPosition, radius), destination.Rotation, .(0.0f, Math.PI_f * 0.5f), topRightSource, color, stepCount);
+		RotatedArc(.(topRightPosition, radius), destination.Rotation, .(0.0f, Math.PI_f * 0.5f), topRightSource, color, stepCount);
 		let verticalRectangleTopRightVertex = _vertexCount - 1;
 
 		// Top left corner:
@@ -267,7 +267,7 @@ class Immediate
 		let verticalRectangleTopLeftVertex = _vertexCount + 1;
 		Vector2 topLeftPosition = destination.TopLeft + Vector2(radius, -radius).RotatedAround(destination);
 		Rectangle topLeftSource = .(source.TopLeft + .(0.0f, -vDiameter), cornerSourceSize);
-		RotatedPie(.(topLeftPosition, radius), destination.Rotation, .(Math.PI_f * 0.5f, Math.PI_f), topLeftSource, color, stepCount);
+		RotatedArc(.(topLeftPosition, radius), destination.Rotation, .(Math.PI_f * 0.5f, Math.PI_f), topLeftSource, color, stepCount);
 		let horizontalRectangleTopLeftVertex = _vertexCount - 1;
 
 		EnsureCapacity(_vertexCount, _indexCount + 30);
@@ -327,7 +327,7 @@ class Immediate
 	}
 
 	// TODO: Maybe combine circular drawing logic?
-	public void RotatedPie(Circle circle, float rotation, Bounds bounds, Rectangle source, Color color, int stepCount = 16)
+	public void RotatedArc(Circle circle, float rotation, Bounds bounds, Rectangle source, Color color, int stepCount = 16)
 	{
 		EnsureCapacity(_vertexCount + (.)stepCount + 2, _indexCount + (.)stepCount * 3);
 
@@ -358,9 +358,9 @@ class Immediate
 	}
 
 	[Inline]
-	public void Pie(Circle circle, Bounds bounds, Rectangle source, Color color, int stepCount = 16)
+	public void Arc(Circle circle, Bounds bounds, Rectangle source, Color color, int stepCount = 16)
 	{
-		RotatedPie(circle, 0.0f, bounds, source, color, stepCount);
+		RotatedArc(circle, 0.0f, bounds, source, color, stepCount);
 	}
 
 	[Inline]

@@ -19,37 +19,37 @@ class FlappyProgram
 
 	static Bounds[PipeCount] PipeBounds = .(.(320.0f, 480.0f), .(0.0f, 320.0f), .(0.0f, 256.0f), .(256.0f, 480.0f), .(0.0f, 240.0f));
 
-	static SDL2.SDL.Window* window;
-	static Driver driver;
-	static Immediate im;
-	static Texture blankTexture;
-	static Canvas canvas;
+	static SDL2.SDL.Window* _window;
+	static Driver _driver;
+	static Immediate _im;
+	static Texture _blankTexture;
+	static Canvas _canvas;
 
-	static Vector2 birdPosition = .(0.0f, 240.0f);
-	static Vector2 birdVelocity = .(50.0f, 0.0f);
+	static Vector2 _birdPosition = .(0.0f, 240.0f);
+	static Vector2 _birdVelocity = .(50.0f, 0.0f);
 
-	static Stopwatch stopwatch;
+	static Stopwatch _stopwatch;
 
-	static bool isLeftMouseDown;
+	static bool _isLeftMouseDown;
 
 	public static void FlappyMain()
 	{
-		window = SDL2.SDL.CreateWindow("Flappy", .Centered, .Centered, 640, 480, Driver.PrepareWindowFlags());
-		driver = scope .(window);
-		canvas = scope .(driver, window);
-		im = scope .(driver);
-		blankTexture = scope .(driver, .(1, 1), .Pixelated, .(scope .(255, 255, 255, 255)));
+		_window = SDL2.SDL.CreateWindow("Flappy", .Centered, .Centered, 640, 480, Driver.PrepareWindowFlags());
+		_driver = scope .(_window);
+		_canvas = scope .(_driver, _window);
+		_im = scope .(_driver);
+		_blankTexture = scope .(_driver, .(1, 1), .Pixelated, .(scope .(255, 255, 255, 255)));
 
-		stopwatch = scope .();
-		stopwatch.Start();
+		_stopwatch = scope .();
+		_stopwatch.Start();
 
 		while (Frame()) { }
 	}
 
 	static bool Frame()
 	{
-		float deltaTime = (.)stopwatch.Elapsed.TotalSeconds;
-		stopwatch.Restart();
+		float deltaTime = (.)_stopwatch.Elapsed.TotalSeconds;
+		_stopwatch.Restart();
 
 		var doJump = false;
 
@@ -59,41 +59,41 @@ class FlappyProgram
 			if (event.type == .WindowEvent && event.window.windowEvent == .Close)
 				return false;
 
-			if (event.type == .MouseButtonDown && event.button.button == SDL2.SDL.SDL_BUTTON_LEFT && !isLeftMouseDown)
+			if (event.type == .MouseButtonDown && event.button.button == SDL2.SDL.SDL_BUTTON_LEFT && !_isLeftMouseDown)
 			{
-				isLeftMouseDown = true;
+				_isLeftMouseDown = true;
 				doJump = true;
 			}
 
 			if (event.type == .MouseButtonUp && event.button.button == SDL2.SDL.SDL_BUTTON_LEFT)
 			{
-				isLeftMouseDown = false;
+				_isLeftMouseDown = false;
 			}
 		}
 
 		if (doJump)
 		{
-			birdVelocity.Y = BirdJumpForce;
+			_birdVelocity.Y = BirdJumpForce;
 		}
 
-		birdVelocity.Y -= BirdGravity * deltaTime;
+		_birdVelocity.Y -= BirdGravity * deltaTime;
 
-		birdPosition += birdVelocity * deltaTime;
+		_birdPosition += _birdVelocity * deltaTime;
 
-		canvas.Clear(driver, SkyColor);
+		_canvas.Clear(_driver, SkyColor);
 
-		im.Circle(.(.(320.0f, birdPosition.Y), BirdRadius), .Zero, BirdColor);
+		_im.Circle(.(.(320.0f, _birdPosition.Y), BirdRadius), .Zero, BirdColor);
 
 		for (var i = 0; i < PipeCount; i++)
 		{
-			var x = PipeCount * PipeSpacing - (birdPosition.X + i * PipeSpacing) % (PipeCount * PipeSpacing) - PipeWidth;
+			var x = PipeCount * PipeSpacing - (_birdPosition.X + i * PipeSpacing) % (PipeCount * PipeSpacing) - PipeWidth;
 			var bounds = PipeBounds[i];
-			im.Quad(.(.(x, bounds.Min), .(PipeWidth, bounds.Range)), .Zero, PipeColor);
+			_im.Quad(.(.(x, bounds.Min), .(PipeWidth, bounds.Range)), .Zero, PipeColor);
 		}
 
-		im.Flush(driver, canvas, blankTexture);
+		_im.Flush(_driver, _canvas, _blankTexture);
 
-		driver.Present(window);
+		_driver.Present(_window);
 
 		return true;
 	}
